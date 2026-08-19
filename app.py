@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, Field
 
 from config import settings
 from database import init_database, get_db
@@ -79,52 +79,52 @@ init_database()
 # ============================================================================
 
 # Email validado via regex simples
-EmailStr = constr(regex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+EmailStr = strregex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
 
 class RegisterRequest(BaseModel):
-    nome: constr(min_length=2, max_length=100)
+    nome: strmin_length=2, max_length=100)
     email: EmailStr
-    senha: constr(min_length=6, max_length=128)
-    whatsapp: constr(max_length=50) = ""
+    senha: strmin_length=6, max_length=128)
+    whatsapp: strmax_length=50) = ""
 
 class LoginRequest(BaseModel):
     email: EmailStr
-    senha: constr(min_length=1)
+    senha: strmin_length=1)
 
 class ConfigUpdateRequest(BaseModel):
-    shopee_app_id: constr(max_length=100) = ""
-    shopee_api_key: constr(max_length=200) = ""
+    shopee_app_id: strmax_length=100) = ""
+    shopee_api_key: strmax_length=200) = ""
     intervalo: int = 30
     min_desconto: int = 20
-    hora_inicio: constr(regex=r"^\d{2}:\d{2}$") = "08:00"
-    hora_fim: constr(regex=r"^\d{2}:\d{2}$") = "22:00"
+    hora_inicio: strregex=r"^\d{2}:\d{2}$") = "08:00"
+    hora_fim: strregex=r"^\d{2}:\d{2}$") = "22:00"
     max_posts_dia: int = 50
     usar_smart_schedule: int = 1
     usar_ab_testing: int = 1
 
 class GrupoCreateRequest(BaseModel):
-    grupo_id: constr(min_length=1, max_length=100)
-    grupo_nome: constr(min_length=1, max_length=200)
-    plataforma: constr(max_length=10) = "wh"
-    fonte: constr(max_length=20) = "ambos"
-    nicho: constr(max_length=100) = "todos"
+    grupo_id: strmin_length=1, max_length=100)
+    grupo_nome: strmin_length=1, max_length=200)
+    plataforma: strmax_length=10) = "wh"
+    fonte: strmax_length=20) = "ambos"
+    nicho: strmax_length=100) = "todos"
 
 class TemplateCreateRequest(BaseModel):
-    nome: constr(min_length=1, max_length=100)
-    copy: constr(min_length=10, max_length=2000)
-    ab_test_group: constr(regex=r"^[ABC]$") = "A"
+    nome: strmin_length=1, max_length=100)
+    copy: strmin_length=10, max_length=2000)
+    ab_test_group: strregex=r"^[ABC]$") = "A"
 
 class AgendamentoCreateRequest(BaseModel):
-    link: constr(min_length=10)
+    link: strmin_length=10)
     grupos: list = []
-    data_agendada: constr(regex=r"^\d{4}-\d{2}-\d{2}$")
-    hora_agendada: constr(regex=r"^\d{2}:\d{2}$")
-    titulo: constr(max_length=200) = ""
+    data_agendada: strregex=r"^\d{4}-\d{2}-\d{2}$")
+    hora_agendada: strregex=r"^\d{2}:\d{2}$")
+    titulo: strmax_length=200) = ""
 
 class MensagemRequest(BaseModel):
-    grupo_id: constr(min_length=1)
-    mensagem: constr(min_length=1, max_length=4000)
-    imagem: constr(max_length=500) = ""
+    grupo_id: strmin_length=1)
+    mensagem: strmin_length=1, max_length=4000)
+    imagem: strmax_length=500) = ""
 
 # ============================================================================
 # RESPOSTAS PADRONIZADAS

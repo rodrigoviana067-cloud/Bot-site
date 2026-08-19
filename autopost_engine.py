@@ -12,9 +12,9 @@ from typing import List, Optional, Dict
 from datetime import datetime, timedelta
 
 from config import settings
-from database import get_db, User, Grupo, Template
+from database import get_db
 from whatsapp_service import whatsapp_service
-from shopee_service import shopee_service, Produto
+from shopee_service import shopee_service
 
 logger = logging.getLogger('affiliate.autopost')
 
