@@ -7,3 +7,5 @@ mercadopago
 requests
 python-dotenv
 pyjwt
+passlib
+bcrypt
