@@ -1,0 +1,19 @@
+{"timestamp": "2026-07-29T02:25:57.865650", "level": "INFO", "logger": "affiliate.db", "message": "✅ Planos padrão inseridos"}
+{"timestamp": "2026-07-29T02:25:57.866302", "level": "INFO", "logger": "affiliate.db", "message": "✅ Banco de dados inicializado com índices otimizados!"}
+{"timestamp": "2026-07-29T02:55:56.194091", "level": "INFO", "logger": "affiliate.db", "message": "✅ Banco de dados inicializado com índices otimizados!"}
+{"timestamp": "2026-07-29T02:56:08.020723", "level": "INFO", "logger": "affiliate.db", "message": "✅ Banco de dados inicializado com índices otimizados!"}
+{"timestamp": "2026-07-29T02:56:08.039639", "level": "INFO", "logger": "affiliate", "message": "============================================================"}
+{"timestamp": "2026-07-29T02:56:08.039816", "level": "INFO", "logger": "affiliate", "message": "🚀 WA Affiliate Pro v6.0 — Iniciando"}
+{"timestamp": "2026-07-29T02:56:08.039905", "level": "INFO", "logger": "affiliate", "message": "📊 Banco: /data/data/com.termux/files/home/wa_affiliate_pro_v6/affiliate.db"}
+{"timestamp": "2026-07-29T02:56:08.039975", "level": "INFO", "logger": "affiliate", "message": "🔐 JWT: wa_affiliate_pro_seg..."}
+{"timestamp": "2026-07-29T02:56:08.040049", "level": "INFO", "logger": "affiliate", "message": "============================================================"}
+{"timestamp": "2026-07-29T02:56:08.040779", "level": "INFO", "logger": "affiliate.autopost", "message": "🚀 Auto-poster worker INICIADO (v6.0 Inteligente)"}
+{"timestamp": "2026-07-29T02:56:08.041144", "level": "INFO", "logger": "affiliate.autopost", "message": "✅ Auto-poster v6.0 iniciado!"}
+{"timestamp": "2026-07-29T02:56:08.041911", "level": "INFO", "logger": "affiliate.agendador", "message": "⏰ Agendador worker INICIADO"}
+{"timestamp": "2026-07-29T02:56:08.042094", "level": "INFO", "logger": "affiliate.agendador", "message": "✅ Agendador iniciado!"}
+{"timestamp": "2026-07-29T03:00:43.096211", "level": "INFO", "logger": "affiliate.autopost", "message": "💤 Nenhum usuário ativo"}
+{"timestamp": "2026-07-29T03:11:03.310679", "level": "INFO", "logger": "affiliate.autopost", "message": "💤 Nenhum usuário ativo"}
+{"timestamp": "2026-07-29T03:25:24.214909", "level": "INFO", "logger": "affiliate.autopost", "message": "💤 Nenhum usuário ativo"}
+{"timestamp": "2026-07-29T03:35:42.380533", "level": "INFO", "logger": "affiliate.autopost", "message": "💤 Nenhum usuário ativo"}
+{"timestamp": "2026-07-29T03:39:48.651143", "level": "INFO", "logger": "affiliate", "message": "🛑 Sinal de shutdown recebido. Parando workers..."}
+{"timestamp": "2026-07-29T03:39:52.726135", "level": "INFO", "logger": "affiliate", "message": "🛑 Sinal de shutdown recebido. Parando workers..."}
