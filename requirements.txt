@@ -6,3 +6,4 @@ email-validator
 mercadopago
 requests
 python-dotenv
+pyjwt
