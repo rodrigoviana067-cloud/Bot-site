@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import os
 import secrets
-from pydantic import BaseSettings, validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
     SECRET_KEY: str = secrets.token_hex(32)
     JWT_SECRET: str = secrets.token_hex(32)
     JWT_EXPIRE_MINUTES: int = 1440
@@ -42,20 +44,10 @@ class Settings(BaseSettings):
     REMARKETING_HOURS_2: int = 72
     REMARKETING_HOURS_3: int = 168
     LOG_LEVEL: str = "INFO"
-    LOG_FORMAT: str = "json"
+    LOG_FORMAT: str = "text"
     LOG_MAX_BYTES: int = 10485760
     LOG_BACKUP_COUNT: int = 5
     PROMETHEUS_PORT: int = 9090
     METRICS_ENABLED: bool = True
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-
-    @validator("DB_PATH")
-    def validate_db_path(cls, v):
-        if not v.endswith(".db"):
-            v += ".db"
-        return os.path.abspath(v)
 
 settings = Settings()
