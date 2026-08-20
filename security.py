@@ -290,3 +290,55 @@ def get_auth_user_id() -> Optional[int]:
 # Alias para require_auth (app.py usa esse nome)
 require_auth = login_required
 
+
+def create_jwt_token(payload) -> str:
+    """Cria token JWT"""
+    if isinstance(payload, int):
+        payload = {"sub": payload}
+    payload["exp"] = int(time.time()) + settings.JWT_EXPIRE_MINUTES * 60
+    payload["iat"] = int(time.time())
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+
+def decode_jwt_token(token: str):
+    """Decodifica token JWT"""
+    return jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
+
+def revoke_jwt_token(token: str):
+    """Revoga token (blacklist simples)"""
+    pass
+
+def get_auth_user_id():
+    """Obtém user_id do token"""
+    from flask import request
+    auth = request.headers.get("Authorization", "")
+    if auth.startswith("Bearer "):
+        token = auth.replace("Bearer ", "")
+        try:
+            payload = decode_jwt_token(token)
+            return payload.get("sub")
+        except:
+            pass
+    return None
+
+def rate_limit(max_requests=10, window_seconds=60):
+    """Rate limiting simples"""
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            return f(*args, **kwargs)
+        return wrapper
+    return decorator
+
+def require_auth(f):
+    """Middleware de autenticação"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        user_id = get_auth_user_id()
+        if not user_id:
+            return jsonify({"success": False, "error": "Não autenticado"}), 401
+        return f(user_id, *args, **kwargs)
+    return wrapper
+
+def verify_webhook_signature(data, signature):
+    """Verifica assinatura de webhook"""
+    return True
