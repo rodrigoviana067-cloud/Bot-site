@@ -1034,8 +1034,9 @@ if __name__ == '__main__':
     logger.info("=" * 60)
 
     # Iniciar workers
-    autopost_engine.start()
-    agendador_worker.start()
+    # Workers desativados temporariamente
+    # autopost_engine.start()
+    # agendador_worker.start()
 
     app.run(
         host='0.0.0.0',
