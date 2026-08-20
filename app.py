@@ -154,7 +154,7 @@ def register():
         with get_db() as conn:
             senha_hash = hash_password(data.senha)
             cursor = conn.execute(
-                "INSERT INTO users (nome, email, senha, whatsapp, trial_start) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO users (nome, email, senha, whatsapp, trial_start) VALUES (%s, %s, %s, %s, %s)",
                 (data.nome, data.email.lower(), senha_hash, data.whatsapp, datetime.now().isoformat())
             )
             user_id = cursor.lastrowid
