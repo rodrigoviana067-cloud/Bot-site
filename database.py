@@ -19,7 +19,7 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
             self.cursor_factory = psycopg2.extras.RealDictCursor
         
         def cursor(self):
-            return self.conn.cursor()
+            return self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         
         def execute(self, query, params=None):
             cur = self.conn.cursor()
