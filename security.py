@@ -15,7 +15,6 @@ from functools import wraps
 from typing import Optional
 
 import jwt
-from passlib.context import CryptContext
 from flask import request, jsonify
 
 from config import settings
