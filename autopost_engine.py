@@ -37,7 +37,7 @@ class SmartSchedule:
                 rows = conn.execute(
                     """SELECT hora, total_posts, total_cliques, ctr 
                        FROM horario_metrics 
-                       WHERE user_id=? AND grupo_id=? AND total_posts >= 5
+                       WHERE user_id=%s AND grupo_id=%s AND total_posts >= 5
                        ORDER BY ctr DESC LIMIT 1""",
                     (user_id, grupo_id)
                 ).fetchall()
@@ -59,11 +59,11 @@ class SmartSchedule:
             with get_db() as conn:
                 conn.execute(
                     """INSERT INTO horario_metrics (user_id, grupo_id, hora, dia_semana, total_posts, total_cliques, ctr)
-                       VALUES (?, ?, ?, ?, 1, ?, ?)
+                       VALUES (%s, %s, %s, %s, 1, %s, %s)
                        ON CONFLICT(user_id, grupo_id, hora, dia_semana) DO UPDATE SET
                        total_posts = total_posts + 1,
-                       total_cliques = total_cliques + ?,
-                       ctr = CAST(total_cliques + ? AS REAL) / (total_posts + 1) * 100""",
+                       total_cliques = total_cliques + %s,
+                       ctr = CAST(total_cliques + %s AS REAL) / (total_posts + 1) * 100""",
                     (user_id, grupo_id, hora, dia_semana, 1 if teve_clique else 0, 
                      100.0 if teve_clique else 0.0, 1 if teve_clique else 0, 1 if teve_clique else 0)
                 )
@@ -89,7 +89,7 @@ class ABTestEngine:
             with get_db() as conn:
                 # Buscar templates do usuário
                 templates = conn.execute(
-                    "SELECT * FROM templates WHERE user_id=? AND selecionado=1",
+                    "SELECT * FROM templates WHERE user_id=%s AND selecionado=1",
                     (user_id,)
                 ).fetchall()
 
@@ -141,9 +141,9 @@ class ABTestEngine:
                 conn.execute(
                     """UPDATE templates SET 
                        total_envios = total_envios + 1,
-                       total_cliques = total_cliques + ?,
-                       ctr = CAST(total_cliques + ? AS REAL) / (total_envios + 1) * 100
-                       WHERE id = ?""",
+                       total_cliques = total_cliques + %s,
+                       ctr = CAST(total_cliques + %s AS REAL) / (total_envios + 1) * 100
+                       WHERE id = %s""",
                     (1 if teve_clique else 0, 1 if teve_clique else 0, template_id)
                 )
                 conn.commit()
@@ -180,7 +180,7 @@ class RemarketingEngine:
                     scheduled = (datetime.now() + timedelta(hours=horas)).isoformat()
                     conn.execute(
                         """INSERT INTO remarketing (user_id, click_id, etapa, status, scheduled_at, message)
-                           VALUES (?, ?, ?, 'pendente', ?, ?)""",
+                           VALUES (%s, %s, %s, 'pendente', %s, %s)""",
                         (user_id, click_id, i, scheduled, msg)
                     )
                 conn.commit()
@@ -213,7 +213,7 @@ class RemarketingEngine:
 
                     status = 'enviado' if success else 'falhou'
                     conn.execute(
-                        "UPDATE remarketing SET status=?, sent_at=datetime('now') WHERE id=?",
+                        "UPDATE remarketing SET status=%s, sent_at=datetime('now') WHERE id=%s",
                         (status, rem['id'])
                     )
 
@@ -259,13 +259,13 @@ class AutopostEngine:
         try:
             with get_db() as conn:
                 control = conn.execute(
-                    "SELECT last_post_at, posts_today, error_count, paused_until FROM autopost_control WHERE user_id=?",
+                    "SELECT last_post_at, posts_today, error_count, paused_until FROM autopost_control WHERE user_id=%s",
                     (user_id,)
                 ).fetchone()
 
                 if not control:
                     conn.execute(
-                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today) VALUES (?, datetime('now'), 0)",
+                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today) VALUES (%s, datetime('now'), 0)",
                         (user_id,)
                     )
                     conn.commit()
@@ -277,7 +277,7 @@ class AutopostEngine:
                     hoje = datetime.now().strftime('%Y-%m-%d')
                     if last_date != hoje:
                         conn.execute(
-                            "UPDATE autopost_control SET posts_today=0 WHERE user_id=?",
+                            "UPDATE autopost_control SET posts_today=0 WHERE user_id=%s",
                             (user_id,)
                         )
                         conn.commit()
@@ -323,28 +323,28 @@ class AutopostEngine:
                        error_count=0, 
                        paused_until=NULL,
                        total_posts=total_posts+1
-                       WHERE user_id=?""",
+                       WHERE user_id=%s""",
                     (user_id,)
                 )
 
                 if conn.total_changes == 0:
                     conn.execute(
-                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today, total_posts) VALUES (?, datetime('now'), 1, 1)",
+                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today, total_posts) VALUES (%s, datetime('now'), 1, 1)",
                         (user_id,)
                     )
 
                 conn.execute(
-                    "INSERT INTO produtos_enviados (user_id, product_id, grupo_id) VALUES (?, ?, ?)",
+                    "INSERT INTO produtos_enviados (user_id, product_id, grupo_id) VALUES (%s, %s, %s)",
                     (user_id, product_id, grupo_id)
                 )
 
                 conn.execute(
-                    """INSERT INTO posts (user_id, grupo_id, titulo, template_id, status) VALUES (?, ?, ?, ?, 'enviado')""",
+                    """INSERT INTO posts (user_id, grupo_id, titulo, template_id, status) VALUES (%s, %s, %s, %s, 'enviado')""",
                     (user_id, grupo_id, titulo[:100], template_id)
                 )
 
                 conn.execute(
-                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (?, ?, ?, 'enviado')",
+                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (%s, %s, %s, 'enviado')",
                     (user_id, grupo_id, titulo[:100])
                 )
 
@@ -357,7 +357,7 @@ class AutopostEngine:
         try:
             with get_db() as conn:
                 control = conn.execute(
-                    "SELECT error_count FROM autopost_control WHERE user_id=?",
+                    "SELECT error_count FROM autopost_control WHERE user_id=%s",
                     (user_id,)
                 ).fetchone()
 
@@ -374,18 +374,18 @@ class AutopostEngine:
                     paused_until = None
 
                 conn.execute(
-                    "UPDATE autopost_control SET error_count=?, paused_until=? WHERE user_id=?",
+                    "UPDATE autopost_control SET error_count=%s, paused_until=%s WHERE user_id=%s",
                     (error_count, paused_until, user_id)
                 )
 
                 if conn.total_changes == 0:
                     conn.execute(
-                        "INSERT INTO autopost_control (user_id, error_count, paused_until) VALUES (?, ?, ?)",
+                        "INSERT INTO autopost_control (user_id, error_count, paused_until) VALUES (%s, %s, %s)",
                         (user_id, error_count, paused_until)
                     )
 
                 conn.execute(
-                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status, erro) VALUES (?, '', 'Auto-post', 'erro', ?)",
+                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status, erro) VALUES (%s, '', 'Auto-post', 'erro', %s)",
                     (user_id, error_msg[:200])
                 )
 
@@ -398,7 +398,7 @@ class AutopostEngine:
         try:
             with get_db() as conn:
                 existe = conn.execute(
-                    "SELECT id FROM produtos_enviados WHERE user_id=? AND product_id=? AND grupo_id=?",
+                    "SELECT id FROM produtos_enviados WHERE user_id=%s AND product_id=%s AND grupo_id=%s",
                     (user_id, product_id, grupo_id)
                 ).fetchone()
                 return existe is not None
@@ -410,7 +410,7 @@ class AutopostEngine:
         try:
             with get_db() as conn:
                 conn.execute(
-                    "DELETE FROM produtos_enviados WHERE user_id=? AND enviado_em < datetime('now', '-{} days')".format(dias),
+                    "DELETE FROM produtos_enviados WHERE user_id=%s AND enviado_em < datetime('now', '-{} days')".format(dias),
                     (user_id,)
                 )
                 conn.commit()
@@ -430,7 +430,7 @@ class AutopostEngine:
             msg = msg.replace('{comissao}', f"{produto.comissao_estimada:.2f}")
 
             # Formatação WhatsApp
-            msg = msg.replace(". ", ".\n\n").replace("! ", "!\n\n").replace("? ", "?\n\n")
+            msg = msg.replace(". ", ".\n\n").replace("! ", "!\n\n").replace("%s ", "%s\n\n")
             msg = msg.replace("Compre agora:", "\nCompre agora:")
             while "\n\n\n" in msg:
                 msg = msg.replace("\n\n\n", "\n\n")
@@ -461,7 +461,7 @@ class AutopostEngine:
                 config = conn.execute(
                     """SELECT intervalo, hora_inicio, hora_fim, min_desconto, max_posts_dia,
                               usar_smart_schedule, usar_ab_testing
-                       FROM configs WHERE user_id=?""",
+                       FROM configs WHERE user_id=%s""",
                     (uid,)
                 ).fetchone()
 
@@ -490,7 +490,7 @@ class AutopostEngine:
             # Buscar grupos selecionados
             with get_db() as conn:
                 grupos = conn.execute(
-                    "SELECT * FROM grupos WHERE user_id=? AND selecionado=1 AND ativo=1",
+                    "SELECT * FROM grupos WHERE user_id=%s AND selecionado=1 AND ativo=1",
                     (uid,)
                 ).fetchall()
 
@@ -523,7 +523,7 @@ class AutopostEngine:
             if not template:
                 with get_db() as conn:
                     tpl = conn.execute(
-                        "SELECT * FROM templates WHERE user_id=? AND selecionado=1 LIMIT 1",
+                        "SELECT * FROM templates WHERE user_id=%s AND selecionado=1 LIMIT 1",
                         (uid,)
                     ).fetchone()
                     if tpl:
@@ -584,7 +584,7 @@ class AutopostEngine:
                     # Atualizar métricas do grupo
                     with get_db() as conn:
                         conn.execute(
-                            "UPDATE grupos SET total_posts=total_posts+1, ultimo_post=datetime('now') WHERE id=?",
+                            "UPDATE grupos SET total_posts=total_posts+1, ultimo_post=datetime('now') WHERE id=%s",
                             (grupo['id'],)
                         )
                         conn.commit()
@@ -667,7 +667,7 @@ class AutopostEngine:
                         enviados = self.processar_usuario(user)
                         total_enviados += enviados
                     except Exception as e:
-                        logger.error(f"Erro no usuário {user.get('nome', '?')}: {e}")
+                        logger.error(f"Erro no usuário {user.get('nome', '%s')}: {e}")
                         continue
 
                 if total_enviados > 0:

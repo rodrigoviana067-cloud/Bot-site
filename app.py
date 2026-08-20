@@ -160,7 +160,7 @@ def register():
             user_id = cursor.lastrowid
 
             # Criar configurações padrão
-            conn.execute("INSERT INTO configs (user_id) VALUES (?)", (user_id,))
+            conn.execute("INSERT INTO configs (user_id) VALUES (%s)", (user_id,))
             conn.commit()
 
         token = create_jwt_token(user_id)
@@ -335,7 +335,7 @@ def criar_grupo(user_id: int):
         with get_db() as conn:
             cursor = conn.execute(
                 """INSERT INTO grupos (user_id, grupo_id, grupo_nome, plataforma, fonte, nicho)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
                 (user_id, data.grupo_id, data.grupo_nome, data.plataforma, data.fonte, data.nicho)
             )
             conn.commit()
@@ -354,7 +354,7 @@ def deletar_grupo(user_id: int, grupo_id: int):
     try:
         with get_db() as conn:
             conn.execute(
-                "UPDATE grupos SET ativo=0 WHERE id=%s AND user_id=?",
+                "UPDATE grupos SET ativo=0 WHERE id=%s AND user_id=%s",
                 (grupo_id, user_id)
             )
             conn.commit()
@@ -371,7 +371,7 @@ def toggle_grupo(user_id: int, grupo_id: int):
     try:
         with get_db() as conn:
             grupo = conn.execute(
-                "SELECT selecionado FROM grupos WHERE id=%s AND user_id=? AND ativo=1",
+                "SELECT selecionado FROM grupos WHERE id=%s AND user_id=%s AND ativo=1",
                 (grupo_id, user_id)
             ).fetchone()
 
@@ -379,7 +379,7 @@ def toggle_grupo(user_id: int, grupo_id: int):
                 return error_response("Grupo não encontrado", 404)
 
             novo = 1 - grupo['selecionado']
-            conn.execute("UPDATE grupos SET selecionado=? WHERE id=%s", (novo, grupo_id))
+            conn.execute("UPDATE grupos SET selecionado=%s WHERE id=%s", (novo, grupo_id))
             conn.commit()
 
         return success_response({"selecionado": novo})
@@ -405,13 +405,13 @@ def sincronizar_grupos(user_id: int):
                     continue
 
                 existente = conn.execute(
-                    "SELECT id FROM grupos WHERE user_id=%s AND grupo_id=? AND ativo=1",
+                    "SELECT id FROM grupos WHERE user_id=%s AND grupo_id=%s AND ativo=1",
                     (user_id, grupo_id)
                 ).fetchone()
 
                 if not existente:
                     conn.execute(
-                        "INSERT INTO grupos (user_id, grupo_id, grupo_nome, plataforma) VALUES (?, ?, ?, ?)",
+                        "INSERT INTO grupos (user_id, grupo_id, grupo_nome, plataforma) VALUES (%s, %s, %s, %s)",
                         (user_id, grupo_id, grupo_nome, 'whatsapp')
                     )
                     sincronizados += 1
@@ -458,7 +458,7 @@ def criar_template(user_id: int):
     try:
         with get_db() as conn:
             cursor = conn.execute(
-                "INSERT INTO templates (user_id, nome, copy, ab_test_group) VALUES (?, ?, ?, ?)",
+                "INSERT INTO templates (user_id, nome, copy, ab_test_group) VALUES (%s, %s, %s, %s)",
                 (user_id, data.nome, data.copy, data.ab_test_group)
             )
             conn.commit()
@@ -476,7 +476,7 @@ def select_template(user_id: int, template_id: int):
         with get_db() as conn:
             conn.execute("UPDATE templates SET selecionado=0 WHERE user_id=%s", (user_id,))
             conn.execute(
-                "UPDATE templates SET selecionado=1 WHERE id=%s AND user_id=?",
+                "UPDATE templates SET selecionado=1 WHERE id=%s AND user_id=%s",
                 (template_id, user_id)
             )
             conn.commit()
@@ -518,7 +518,7 @@ def update_config(user_id: int):
 
         for field, value in data.dict(exclude_unset=True).items():
             if value is not None:
-                updates.append(f"{field}=?")
+                updates.append(f"{field}=%s")
                 values.append(value)
 
         if updates:
@@ -547,7 +547,7 @@ def toggle_autopost(user_id: int):
         with get_db() as conn:
             user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
             novo = 1 - user['autopost']
-            conn.execute("UPDATE users SET autopost=? WHERE id=%s", (novo, user_id))
+            conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
             conn.commit()
 
         status = "ativado" if novo else "desativado"
@@ -572,7 +572,7 @@ def autopost_stats(user_id: int):
                 """SELECT p.*, g.grupo_nome 
                    FROM posts p 
                    LEFT JOIN grupos g ON p.grupo_id=g.grupo_id AND p.user_id=g.user_id
-                   WHERE p.user_id=? ORDER BY p.created_at DESC LIMIT 10""",
+                   WHERE p.user_id=%s ORDER BY p.created_at DESC LIMIT 10""",
                 (user_id,)
             ).fetchall()
 
@@ -648,7 +648,7 @@ def criar_agendamento(user_id: int):
         with get_db() as conn:
             cursor = conn.execute(
                 """INSERT INTO agendamentos (user_id, link, grupos, data_agendada, hora_agendada, titulo)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s)""",
                 (user_id, data.link, grupos_str, data.data_agendada, data.hora_agendada, data.titulo or '')
             )
             conn.commit()
@@ -666,7 +666,7 @@ def deletar_agendamento(user_id: int, agendamento_id: int):
     try:
         with get_db() as conn:
             conn.execute(
-                "DELETE FROM agendamentos WHERE id=%s AND user_id=?",
+                "DELETE FROM agendamentos WHERE id=%s AND user_id=%s",
                 (agendamento_id, user_id)
             )
             conn.commit()
@@ -699,7 +699,7 @@ def enviar_mensagem(user_id: int):
         if success:
             with get_db() as conn:
                 conn.execute(
-                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (?, ?, ?, ?)",
+                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (%s, %s, %s, %s)",
                     (user_id, data.grupo_id, data.mensagem[:100], 'enviado')
                 )
                 conn.commit()
@@ -767,7 +767,7 @@ def analytics(user_id: int):
             for i in range(6, -1, -1):
                 data = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
                 count = conn.execute(
-                    "SELECT COUNT(*) as c FROM auto_post_log WHERE user_id=%s AND date(created_at)=?",
+                    "SELECT COUNT(*) as c FROM auto_post_log WHERE user_id=%s AND date(created_at)=%s",
                     (user_id, data)
                 ).fetchone()['c']
                 dia_nome = dias_semana[(datetime.now() - timedelta(days=i)).weekday()]
@@ -779,7 +779,7 @@ def analytics(user_id: int):
                 """SELECT g.grupo_nome, COUNT(*) as c, AVG(g.ctr) as ctr
                    FROM auto_post_log al 
                    JOIN grupos g ON al.grupo_id=g.grupo_id AND al.user_id=g.user_id
-                   WHERE al.user_id=? AND date(al.created_at) >= date('now', '-7 days')
+                   WHERE al.user_id=%s AND date(al.created_at) >= date('now', '-7 days')
                    GROUP BY al.grupo_id ORDER BY c DESC LIMIT 5""",
                 (user_id,)
             ).fetchall()
@@ -820,12 +820,12 @@ def redirect_click(short_code: str):
     try:
         with get_db() as conn:
             click = conn.execute(
-                "SELECT * FROM clicks WHERE short_code=?", (short_code,)
+                "SELECT * FROM clicks WHERE short_code=%s", (short_code,)
             ).fetchone()
 
             if click:
                 conn.execute(
-                    "UPDATE clicks SET clicked_at=datetime('now') WHERE short_code=?",
+                    "UPDATE clicks SET clicked_at=datetime('now') WHERE short_code=%s",
                     (short_code,)
                 )
 
@@ -841,7 +841,7 @@ def redirect_click(short_code: str):
                     conn.execute(
                         """UPDATE grupos SET total_cliques=total_cliques+1, 
                            ctr=CAST(total_cliques+1 AS REAL)/(total_posts+1)*100 
-                           WHERE grupo_id=? AND user_id=?""",
+                           WHERE grupo_id=%s AND user_id=%s""",
                         (click['grupo_id'], click['user_id'])
                     )
 
