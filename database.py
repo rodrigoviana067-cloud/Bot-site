@@ -82,7 +82,7 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
                 duracao_dias INTEGER DEFAULT 7
             )""")
             cur.execute("SELECT COUNT(*) FROM planos")
-            if cur.fetchone()['count'] == 0:
+            if cur.fetchone()[0] == 0:
                 planos = [(1,'Trial',5,20,0,7),(2,'Pro',20,50,29.9,30),(3,'Elite',40,100,49.9,30),(4,'Enterprise',100,200,99.9,30)]
                 for p in planos:
                     cur.execute("INSERT INTO planos (id,nome,max_grupos,max_posts_dia,preco,duracao_dias) VALUES (%s,%s,%s,%s,%s,%s)", p)
