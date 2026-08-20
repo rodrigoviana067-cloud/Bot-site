@@ -8,7 +8,7 @@ from contextlib import contextmanager
 logger = logging.getLogger('affiliate.db')
 
 # Verificar se DATABASE_URL do Railway existe
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
+DATABASE_URL = os.environ.get('DATABASE_URL', '') or os.environ.get('DATABASE_PUBLIC_URL', '') or os.environ.get('DATABASE_PRIVATE_URL', '')
 
 if DATABASE_URL and DATABASE_URL.startswith('postgres'):
     import psycopg2
