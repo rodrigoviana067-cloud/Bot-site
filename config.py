@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_hex(32)
     JWT_SECRET: str = secrets.token_hex(32)
     JWT_EXPIRE_MINUTES: int = 1440
-    DB_PATH: str = "./affiliate.db"
+    DB_PATH: str = os.environ.get("DB_PATH", "/app/data/affiliate.db")
     DB_POOL_SIZE: int = 5
     DB_TIMEOUT: int = 30
     WA_BRIDGE_URL: str = "http://127.0.0.1:3000"
