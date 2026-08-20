@@ -152,35 +152,6 @@ def register():
 
     try:
         with get_db() as conn:
-            # Garantir tabelas existem
-            conn.execute('''CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL, email TEXT UNIQUE NOT NULL,
-                whatsapp TEXT, senha TEXT NOT NULL,
-                trial_start TEXT, plano_ativo INTEGER DEFAULT 1,
-                autopost INTEGER DEFAULT 0, bridge_id INTEGER DEFAULT 0,
-                trial_used INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT (datetime('now'))
-            )''')
-            conn.execute('''CREATE TABLE IF NOT EXISTS configs (
-                user_id INTEGER PRIMARY KEY,
-                shopee_app_id TEXT DEFAULT '', shopee_api_key TEXT DEFAULT '',
-                intervalo INTEGER DEFAULT 30, min_desconto INTEGER DEFAULT 20,
-                hora_inicio TEXT DEFAULT '08:00', hora_fim TEXT DEFAULT '22:00',
-                max_posts_dia INTEGER DEFAULT 50,
-                usar_smart_schedule INTEGER DEFAULT 1, usar_ab_testing INTEGER DEFAULT 1
-            )''')
-            conn.execute('''CREATE TABLE IF NOT EXISTS planos (
-                id INTEGER PRIMARY KEY, nome TEXT NOT NULL,
-                max_grupos INTEGER DEFAULT 5, max_posts_dia INTEGER DEFAULT 50,
-                preco REAL DEFAULT 0.0, duracao_dias INTEGER DEFAULT 7
-            )''')
-            # Inserir planos se não existem
-            conn.execute("SELECT COUNT(*) FROM planos")
-            if conn.execute("SELECT COUNT(*) as c FROM planos").fetchone()["c"] == 0:
-                for p in [(1,'Trial',5,20,0,7),(2,'Pro',20,50,29.9,30),(3,'Elite',40,100,49.9,30),(4,'Enterprise',100,200,99.9,30)]:
-                    conn.execute("INSERT INTO planos VALUES (?,?,?,?,?,?)", p)
-            
             senha_hash = hash_password(data.senha)
             cursor = conn.execute(
                 "INSERT INTO users (nome, email, senha, whatsapp, trial_start) VALUES (?, ?, ?, ?, ?)",
@@ -220,24 +191,6 @@ def login():
 
     try:
         with get_db() as conn:
-            # Garantir tabelas existem
-            conn.execute('''CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL, email TEXT UNIQUE NOT NULL,
-                whatsapp TEXT, senha TEXT NOT NULL,
-                trial_start TEXT, plano_ativo INTEGER DEFAULT 1,
-                autopost INTEGER DEFAULT 0, bridge_id INTEGER DEFAULT 0,
-                trial_used INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT (datetime('now'))
-            )''')
-            conn.execute('''CREATE TABLE IF NOT EXISTS configs (
-                user_id INTEGER PRIMARY KEY,
-                shopee_app_id TEXT DEFAULT '', shopee_api_key TEXT DEFAULT '',
-                intervalo INTEGER DEFAULT 30, min_desconto INTEGER DEFAULT 20,
-                hora_inicio TEXT DEFAULT '08:00', hora_fim TEXT DEFAULT '22:00',
-                max_posts_dia INTEGER DEFAULT 50,
-                usar_smart_schedule INTEGER DEFAULT 1, usar_ab_testing INTEGER DEFAULT 1
-            )''')
             user = conn.execute(
                 "SELECT * FROM users WHERE email=?", (data.email.lower(),)
             ).fetchone()
