@@ -154,7 +154,7 @@ def register():
         with get_db() as conn:
             senha_hash = hash_password(data.senha)
             cursor = conn.execute(
-                "INSERT INTO users (nome, email, senha, whatsapp, trial_start) VALUES (?, ?, ?, ?, ?)",
+                "INSERT INTO users (nome, email, senha, whatsapp, trial_start) VALUES (%s, %s, %s, %s, %s)",
                 (data.nome, data.email.lower(), senha_hash, data.whatsapp, datetime.now().isoformat())
             )
             user_id = cursor.lastrowid
@@ -192,7 +192,7 @@ def login():
     try:
         with get_db() as conn:
             user = conn.execute(
-                "SELECT * FROM users WHERE email=?", (data.email.lower(),)
+                "SELECT * FROM users WHERE email=%s", (data.email.lower(),)
             ).fetchone()
 
         if not user or not verify_password(data.senha, user['senha']):
@@ -249,37 +249,37 @@ def dashboard(user_id: int):
         with get_db() as conn:
             # Grupos
             grupos = conn.execute(
-                "SELECT COUNT(*) as c FROM grupos WHERE user_id=? AND ativo=1", (user_id,)
+                "SELECT COUNT(*) as c FROM grupos WHERE user_id=%s AND ativo=1", (user_id,)
             ).fetchone()['c']
 
             grupos_ativos = conn.execute(
-                "SELECT COUNT(*) as c FROM grupos WHERE user_id=? AND selecionado=1 AND ativo=1", (user_id,)
+                "SELECT COUNT(*) as c FROM grupos WHERE user_id=%s AND selecionado=1 AND ativo=1", (user_id,)
             ).fetchone()['c']
 
             # Posts hoje
             posts_hoje = conn.execute(
-                "SELECT COUNT(*) as c FROM posts WHERE user_id=? AND date(created_at)=date('now')", (user_id,)
+                "SELECT COUNT(*) as c FROM posts WHERE user_id=%s AND date(created_at)=date('now')", (user_id,)
             ).fetchone()['c']
 
             # Total de cliques
             total_cliques = conn.execute(
-                "SELECT COUNT(*) as c FROM clicks WHERE user_id=?", (user_id,)
+                "SELECT COUNT(*) as c FROM clicks WHERE user_id=%s", (user_id,)
             ).fetchone()['c']
 
             # CTR médio
             ctr_data = conn.execute(
-                "SELECT AVG(ctr) as avg_ctr FROM grupos WHERE user_id=? AND total_posts > 0", (user_id,)
+                "SELECT AVG(ctr) as avg_ctr FROM grupos WHERE user_id=%s AND total_posts > 0", (user_id,)
             ).fetchone()
             ctr_medio = round(ctr_data['avg_ctr'] or 0, 2)
 
             # Últimos envios
             logs = conn.execute(
-                "SELECT * FROM auto_post_log WHERE user_id=? ORDER BY created_at DESC LIMIT 10",
+                "SELECT * FROM auto_post_log WHERE user_id=%s ORDER BY created_at DESC LIMIT 10",
                 (user_id,)
             ).fetchall()
 
             # Status autopost
-            user = conn.execute("SELECT autopost FROM users WHERE id=?", (user_id,)).fetchone()
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
 
             # Status circuit breakers
             cb_stats = {
@@ -313,7 +313,7 @@ def listar_grupos(user_id: int):
     try:
         with get_db() as conn:
             grupos = conn.execute(
-                "SELECT * FROM grupos WHERE user_id=? AND ativo=1 ORDER BY created_at DESC",
+                "SELECT * FROM grupos WHERE user_id=%s AND ativo=1 ORDER BY created_at DESC",
                 (user_id,)
             ).fetchall()
         return success_response([dict(g) for g in grupos])
@@ -354,7 +354,7 @@ def deletar_grupo(user_id: int, grupo_id: int):
     try:
         with get_db() as conn:
             conn.execute(
-                "UPDATE grupos SET ativo=0 WHERE id=? AND user_id=?",
+                "UPDATE grupos SET ativo=0 WHERE id=%s AND user_id=?",
                 (grupo_id, user_id)
             )
             conn.commit()
@@ -371,7 +371,7 @@ def toggle_grupo(user_id: int, grupo_id: int):
     try:
         with get_db() as conn:
             grupo = conn.execute(
-                "SELECT selecionado FROM grupos WHERE id=? AND user_id=? AND ativo=1",
+                "SELECT selecionado FROM grupos WHERE id=%s AND user_id=? AND ativo=1",
                 (grupo_id, user_id)
             ).fetchone()
 
@@ -379,7 +379,7 @@ def toggle_grupo(user_id: int, grupo_id: int):
                 return error_response("Grupo não encontrado", 404)
 
             novo = 1 - grupo['selecionado']
-            conn.execute("UPDATE grupos SET selecionado=? WHERE id=?", (novo, grupo_id))
+            conn.execute("UPDATE grupos SET selecionado=? WHERE id=%s", (novo, grupo_id))
             conn.commit()
 
         return success_response({"selecionado": novo})
@@ -405,7 +405,7 @@ def sincronizar_grupos(user_id: int):
                     continue
 
                 existente = conn.execute(
-                    "SELECT id FROM grupos WHERE user_id=? AND grupo_id=? AND ativo=1",
+                    "SELECT id FROM grupos WHERE user_id=%s AND grupo_id=? AND ativo=1",
                     (user_id, grupo_id)
                 ).fetchone()
 
@@ -437,7 +437,7 @@ def listar_templates(user_id: int):
     try:
         with get_db() as conn:
             templates = conn.execute(
-                "SELECT * FROM templates WHERE user_id=? ORDER BY created_at DESC",
+                "SELECT * FROM templates WHERE user_id=%s ORDER BY created_at DESC",
                 (user_id,)
             ).fetchall()
         return success_response([dict(t) for t in templates])
@@ -474,9 +474,9 @@ def select_template(user_id: int, template_id: int):
     """Seleciona template como ativo"""
     try:
         with get_db() as conn:
-            conn.execute("UPDATE templates SET selecionado=0 WHERE user_id=?", (user_id,))
+            conn.execute("UPDATE templates SET selecionado=0 WHERE user_id=%s", (user_id,))
             conn.execute(
-                "UPDATE templates SET selecionado=1 WHERE id=? AND user_id=?",
+                "UPDATE templates SET selecionado=1 WHERE id=%s AND user_id=?",
                 (template_id, user_id)
             )
             conn.commit()
@@ -496,7 +496,7 @@ def get_config(user_id: int):
     """Obtém configurações do usuário"""
     try:
         with get_db() as conn:
-            config = conn.execute("SELECT * FROM configs WHERE user_id=?", (user_id,)).fetchone()
+            config = conn.execute("SELECT * FROM configs WHERE user_id=%s", (user_id,)).fetchone()
         return success_response(dict(config) if config else {})
     except Exception as e:
         logger.error(f"Erro ao obter config: {e}")
@@ -523,7 +523,7 @@ def update_config(user_id: int):
 
         if updates:
             values.append(user_id)
-            query = f"UPDATE configs SET {', '.join(updates)} WHERE user_id=?"
+            query = f"UPDATE configs SET {', '.join(updates)} WHERE user_id=%s"
 
             with get_db() as conn:
                 conn.execute(query, values)
@@ -545,9 +545,9 @@ def toggle_autopost(user_id: int):
     """Ativa/desativa autopost"""
     try:
         with get_db() as conn:
-            user = conn.execute("SELECT autopost FROM users WHERE id=?", (user_id,)).fetchone()
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
             novo = 1 - user['autopost']
-            conn.execute("UPDATE users SET autopost=? WHERE id=?", (novo, user_id))
+            conn.execute("UPDATE users SET autopost=? WHERE id=%s", (novo, user_id))
             conn.commit()
 
         status = "ativado" if novo else "desativado"
@@ -565,7 +565,7 @@ def autopost_stats(user_id: int):
     try:
         with get_db() as conn:
             control = conn.execute(
-                "SELECT * FROM autopost_control WHERE user_id=?", (user_id,)
+                "SELECT * FROM autopost_control WHERE user_id=%s", (user_id,)
             ).fetchone()
 
             posts = conn.execute(
@@ -577,7 +577,7 @@ def autopost_stats(user_id: int):
             ).fetchall()
 
             prod_unicos = conn.execute(
-                "SELECT COUNT(DISTINCT product_id) as c FROM produtos_enviados WHERE user_id=?",
+                "SELECT COUNT(DISTINCT product_id) as c FROM produtos_enviados WHERE user_id=%s",
                 (user_id,)
             ).fetchone()['c']
 
@@ -605,7 +605,7 @@ def reset_autopost_errors(user_id: int):
     try:
         with get_db() as conn:
             conn.execute(
-                "UPDATE autopost_control SET error_count=0, paused_until=NULL WHERE user_id=?",
+                "UPDATE autopost_control SET error_count=0, paused_until=NULL WHERE user_id=%s",
                 (user_id,)
             )
             conn.commit()
@@ -625,7 +625,7 @@ def listar_agendamentos(user_id: int):
     try:
         with get_db() as conn:
             ags = conn.execute(
-                "SELECT * FROM agendamentos WHERE user_id=? ORDER BY data_agendada DESC, hora_agendada DESC",
+                "SELECT * FROM agendamentos WHERE user_id=%s ORDER BY data_agendada DESC, hora_agendada DESC",
                 (user_id,)
             ).fetchall()
         return success_response([dict(a) for a in ags])
@@ -666,7 +666,7 @@ def deletar_agendamento(user_id: int, agendamento_id: int):
     try:
         with get_db() as conn:
             conn.execute(
-                "DELETE FROM agendamentos WHERE id=? AND user_id=?",
+                "DELETE FROM agendamentos WHERE id=%s AND user_id=?",
                 (agendamento_id, user_id)
             )
             conn.commit()
@@ -728,7 +728,7 @@ def buscar_produto(user_id: int):
     try:
         with get_db() as conn:
             config = conn.execute(
-                "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=?",
+                "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=%s",
                 (user_id,)
             ).fetchone()
 
@@ -767,7 +767,7 @@ def analytics(user_id: int):
             for i in range(6, -1, -1):
                 data = (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d')
                 count = conn.execute(
-                    "SELECT COUNT(*) as c FROM auto_post_log WHERE user_id=? AND date(created_at)=?",
+                    "SELECT COUNT(*) as c FROM auto_post_log WHERE user_id=%s AND date(created_at)=?",
                     (user_id, data)
                 ).fetchone()['c']
                 dia_nome = dias_semana[(datetime.now() - timedelta(days=i)).weekday()]
@@ -786,14 +786,14 @@ def analytics(user_id: int):
 
             # Templates performance
             templates_perf = conn.execute(
-                "SELECT nome, total_envios, total_cliques, ctr FROM templates WHERE user_id=? AND total_envios > 0",
+                "SELECT nome, total_envios, total_cliques, ctr FROM templates WHERE user_id=%s AND total_envios > 0",
                 (user_id,)
             ).fetchall()
 
             # Horários com melhor CTR
             melhores_horarios = conn.execute(
                 """SELECT hora, AVG(ctr) as avg_ctr, SUM(total_posts) as total
-                   FROM horario_metrics WHERE user_id=? 
+                   FROM horario_metrics WHERE user_id=%s 
                    GROUP BY hora HAVING total >= 3 ORDER BY avg_ctr DESC LIMIT 5""",
                 (user_id,)
             ).fetchall()
@@ -832,7 +832,7 @@ def redirect_click(short_code: str):
                 # Atualizar métricas do post
                 if click['post_id']:
                     conn.execute(
-                        "UPDATE posts SET cliques=cliques+1 WHERE id=?",
+                        "UPDATE posts SET cliques=cliques+1 WHERE id=%s",
                         (click['post_id'],)
                     )
 
@@ -850,7 +850,7 @@ def redirect_click(short_code: str):
                     conn.execute(
                         """UPDATE templates SET total_cliques=total_cliques+1,
                            ctr=CAST(total_cliques+1 AS REAL)/(total_envios+1)*100
-                           WHERE id=?""",
+                           WHERE id=%s""",
                         (click['template_id'],)
                     )
 
@@ -871,17 +871,17 @@ def clicks_stats(user_id: int):
     try:
         with get_db() as conn:
             total = conn.execute(
-                "SELECT COUNT(*) as c FROM clicks WHERE user_id=?", (user_id,)
+                "SELECT COUNT(*) as c FROM clicks WHERE user_id=%s", (user_id,)
             ).fetchone()['c']
 
             hoje = conn.execute(
-                "SELECT COUNT(*) as c FROM clicks WHERE user_id=? AND date(clicked_at)=date('now')",
+                "SELECT COUNT(*) as c FROM clicks WHERE user_id=%s AND date(clicked_at)=date('now')",
                 (user_id,)
             ).fetchone()['c']
 
             por_grupo = conn.execute(
                 """SELECT grupo_id, COUNT(*) as c FROM clicks 
-                   WHERE user_id=? GROUP BY grupo_id ORDER BY c DESC LIMIT 10""",
+                   WHERE user_id=%s GROUP BY grupo_id ORDER BY c DESC LIMIT 10""",
                 (user_id,)
             ).fetchall()
 
@@ -904,10 +904,10 @@ def verificar_limites(user_id: int):
     """Verifica limites do plano"""
     try:
         with get_db() as conn:
-            user = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
-            plano = conn.execute("SELECT * FROM planos WHERE id=?", (user['plano_ativo'] or 1,)).fetchone()
+            user = conn.execute("SELECT * FROM users WHERE id=%s", (user_id,)).fetchone()
+            plano = conn.execute("SELECT * FROM planos WHERE id=%s", (user['plano_ativo'] or 1,)).fetchone()
             grupos_count = conn.execute(
-                "SELECT COUNT(*) as c FROM grupos WHERE user_id=? AND selecionado=1 AND ativo=1", (user_id,)
+                "SELECT COUNT(*) as c FROM grupos WHERE user_id=%s AND selecionado=1 AND ativo=1", (user_id,)
             ).fetchone()
 
             dias = 0
@@ -940,7 +940,7 @@ def planos_disponiveis(user_id: int):
     """Lista planos disponíveis"""
     try:
         with get_db() as conn:
-            user = conn.execute("SELECT plano_ativo FROM users WHERE id=?", (user_id,)).fetchone()
+            user = conn.execute("SELECT plano_ativo FROM users WHERE id=%s", (user_id,)).fetchone()
             planos = conn.execute("SELECT * FROM planos ORDER BY id").fetchall()
 
         return success_response({
