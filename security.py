@@ -272,21 +272,6 @@ def is_token_revoked(token: str) -> bool:
     return token in _revoked_tokens
 
 
-def get_auth_user_id() -> Optional[int]:
-    """Obtém o user_id do token na requisição atual"""
-    from flask import request
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header.startswith('Bearer '):
-        return None
-    token = auth_header.split(' ')[1]
-    if is_token_revoked(token):
-        return None
-    payload = decode_access_token(token)
-    if payload:
-        return payload.get('sub')
-    return None
-
-
 # Alias para require_auth (app.py usa esse nome)
 require_auth = login_required
 
