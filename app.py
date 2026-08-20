@@ -78,53 +78,51 @@ init_database()
 # MODELOS PYDANTIC (Validação de Requests) — Corrigidos para Pydantic v1
 # ============================================================================
 
-# Email validado via regex simples
-EmailStr = strregex=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-
+# Modelos Pydantic (Pydantic V2)
 class RegisterRequest(BaseModel):
-    nome: strmin_length=2, max_length=100)
-    email: EmailStr
-    senha: strmin_length=6, max_length=128)
-    whatsapp: strmax_length=50) = ""
+    nome: str = Field(..., min_length=2, max_length=100)
+    email: str = Field(..., pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    senha: str = Field(..., min_length=6, max_length=128)
+    whatsapp: str = Field(default="", max_length=50)
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    senha: strmin_length=1)
+    email: str = Field(..., pattern=r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+    senha: str = Field(..., min_length=1)
 
 class ConfigUpdateRequest(BaseModel):
-    shopee_app_id: strmax_length=100) = ""
-    shopee_api_key: strmax_length=200) = ""
+    shopee_app_id: str = Field(default="", max_length=100)
+    shopee_api_key: str = Field(default="", max_length=200)
     intervalo: int = 30
     min_desconto: int = 20
-    hora_inicio: strregex=r"^\d{2}:\d{2}$") = "08:00"
-    hora_fim: strregex=r"^\d{2}:\d{2}$") = "22:00"
+    hora_inicio: str = Field(default="08:00", pattern=r'^\d{2}:\d{2}$')
+    hora_fim: str = Field(default="22:00", pattern=r'^\d{2}:\d{2}$')
     max_posts_dia: int = 50
     usar_smart_schedule: int = 1
     usar_ab_testing: int = 1
 
 class GrupoCreateRequest(BaseModel):
-    grupo_id: strmin_length=1, max_length=100)
-    grupo_nome: strmin_length=1, max_length=200)
-    plataforma: strmax_length=10) = "wh"
-    fonte: strmax_length=20) = "ambos"
-    nicho: strmax_length=100) = "todos"
+    grupo_id: str = Field(..., min_length=1, max_length=100)
+    grupo_nome: str = Field(..., min_length=1, max_length=200)
+    plataforma: str = Field(default="wh", max_length=10)
+    fonte: str = Field(default="ambos", max_length=20)
+    nicho: str = Field(default="todos", max_length=100)
 
 class TemplateCreateRequest(BaseModel):
-    nome: strmin_length=1, max_length=100)
-    copy: strmin_length=10, max_length=2000)
-    ab_test_group: strregex=r"^[ABC]$") = "A"
+    nome: str = Field(..., min_length=1, max_length=100)
+    copy: str = Field(..., min_length=10, max_length=2000)
+    ab_test_group: str = Field(default="A", pattern=r'^[ABC]$')
 
 class AgendamentoCreateRequest(BaseModel):
-    link: strmin_length=10)
+    link: str = Field(..., min_length=10)
     grupos: list = []
-    data_agendada: strregex=r"^\d{4}-\d{2}-\d{2}$")
-    hora_agendada: strregex=r"^\d{2}:\d{2}$")
-    titulo: strmax_length=200) = ""
+    data_agendada: str = Field(..., pattern=r'^\d{4}-\d{2}-\d{2}$')
+    hora_agendada: str = Field(..., pattern=r'^\d{2}:\d{2}$')
+    titulo: str = Field(default="", max_length=200)
 
 class MensagemRequest(BaseModel):
-    grupo_id: strmin_length=1)
-    mensagem: strmin_length=1, max_length=4000)
-    imagem: strmax_length=500) = ""
+    grupo_id: str = Field(..., min_length=1)
+    mensagem: str = Field(..., min_length=1, max_length=4000)
+    imagem: str = Field(default="", max_length=500)
 
 # ============================================================================
 # RESPOSTAS PADRONIZADAS
