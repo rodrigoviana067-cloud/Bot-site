@@ -177,7 +177,7 @@ def register():
             )''')
             # Inserir planos se não existem
             conn.execute("SELECT COUNT(*) FROM planos")
-            if conn.fetchone()[0] == 0:
+            if conn.execute("SELECT COUNT(*) as c FROM planos").fetchone()["c"] == 0:
                 for p in [(1,'Trial',5,20,0,7),(2,'Pro',20,50,29.9,30),(3,'Elite',40,100,49.9,30),(4,'Enterprise',100,200,99.9,30)]:
                     conn.execute("INSERT INTO planos VALUES (?,?,?,?,?,?)", p)
             
