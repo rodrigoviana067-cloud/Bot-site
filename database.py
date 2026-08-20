@@ -7,7 +7,7 @@ from contextlib import contextmanager
 
 logger = logging.getLogger('affiliate.db')
 
-DATABASE_URL = os.environ.get('DATABASE_URL', '') or os.environ.get('DATABASE_PRIVATE_URL', '')
+DATABASE_URL = os.environ.get('DATABASE_URL', '') or os.environ.get('DATABASE_PRIVATE_URL', '') or 'postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@postgres.railway.internal:5432/railway'
 
 if DATABASE_URL and 'postgres' in DATABASE_URL:
     import psycopg2
