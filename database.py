@@ -100,7 +100,7 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
 else:
     @contextmanager
     def get_db():
-        conn = sqlite3.connect(':memory:', check_same_thread=False)
+        conn = sqlite3.connect('/tmp/affiliate.db', check_same_thread=False)
         conn.row_factory = sqlite3.Row
         try:
             yield conn
