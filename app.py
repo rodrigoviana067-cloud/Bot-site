@@ -224,7 +224,7 @@ def login():
 
     except Exception as e:
         logger.error(f"Erro no login: {e}")
-        return error_response("Erro ao fazer login", 500)
+        return error_response(f"Erro ao fazer login: {str(e)}", 500)
 
 
 @app.route('/api/auth/logout', methods=['POST'])
