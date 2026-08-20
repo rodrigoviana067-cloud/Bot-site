@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from config import settings
 from database import get_db, Template, Grupo, User, Template, Grupo, User
 from whatsapp_service import whatsapp_service
-from shopee_service import shopee_service
+from shopee_service import shopee_service, Produto
 
 logger = logging.getLogger('affiliate.autopost')
 
