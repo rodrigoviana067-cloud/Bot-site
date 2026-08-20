@@ -17,6 +17,19 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
     def get_db():
         conn = psycopg2.connect(DATABASE_URL)
         conn.cursor_factory = psycopg2.extras.RealDictCursor
+        
+        # Adicionar método execute para compatibilidade
+        def execute(query, params=None):
+            cur = conn.cursor()
+            if params:
+                cur.execute(query, params)
+            else:
+                cur.execute(query)
+            conn.commit()
+            return cur
+        
+        conn.execute = execute
+        
         try:
             yield conn
         finally:
