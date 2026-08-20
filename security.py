@@ -26,19 +26,15 @@ logger = logging.getLogger('affiliate.security')
 # PASSWORD HASHING
 # ============================================================================
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+import hashlib
 
 def hash_password(password: str) -> str:
-    """Hash seguro de senha usando bcrypt"""
-    return pwd_context.hash(password)
-
+    """Hash seguro usando SHA256"""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifica se a senha corresponde ao hash"""
-    return pwd_context.verify(plain_password, hashed_password)
-
-
+    return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
 # ============================================================================
 # JWT AUTHENTICATION
 # ============================================================================
