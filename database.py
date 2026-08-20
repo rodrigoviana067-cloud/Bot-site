@@ -12,6 +12,20 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
     import psycopg2
     import psycopg2.extras
     
+    import psycopg2.extensions
+    
+    # Monkey-patch: adicionar execute à connection
+    def _execute(self, query, params=None):
+        cur = self.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        if params:
+            cur.execute(query, params)
+        else:
+            cur.execute(query)
+        self.commit()
+        return cur
+    
+    psycopg2.extensions.connection.execute = _execute
+    
     @contextmanager
     def get_db():
         conn = psycopg2.connect(DATABASE_URL)
