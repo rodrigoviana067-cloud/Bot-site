@@ -13,25 +13,32 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
     import psycopg2
     import psycopg2.extras
     
-    @contextmanager
-    def get_db():
-        conn = psycopg2.connect(DATABASE_URL)
-        conn.cursor_factory = psycopg2.extras.RealDictCursor
+    class DBWrapper:
+        def __init__(self, conn):
+            self.conn = conn
+            self.cursor_factory = psycopg2.extras.RealDictCursor
         
-        # Adicionar método execute para compatibilidade
-        def execute(query, params=None):
-            cur = conn.cursor()
+        def execute(self, query, params=None):
+            cur = self.conn.cursor()
             if params:
                 cur.execute(query, params)
             else:
                 cur.execute(query)
-            conn.commit()
+            self.conn.commit()
             return cur
         
-        conn.execute = execute
+        def commit(self):
+            self.conn.commit()
         
+        def close(self):
+            self.conn.close()
+    
+    @contextmanager
+    def get_db():
+        conn = psycopg2.connect(DATABASE_URL)
+        wrapper = DBWrapper(conn)
         try:
-            yield conn
+            yield wrapper
         finally:
             conn.close()
     
