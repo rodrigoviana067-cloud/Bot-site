@@ -89,3 +89,34 @@ else:
     
     def init_database():
         logger.info("✅ SQLite inicializado!")
+
+# Classes simples para compatibilidade
+class Template:
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id', 0)
+        self.user_id = kwargs.get('user_id', 0)
+        self.nome = kwargs.get('nome', '')
+        self.copy = kwargs.get('copy', '')
+        self.selecionado = kwargs.get('selecionado', 0)
+        self.ab_test_group = kwargs.get('ab_test_group', 'A')
+        self.win_rate = kwargs.get('win_rate', 0.0)
+        self.total_envios = kwargs.get('total_envios', 0)
+        self.total_cliques = kwargs.get('total_cliques', 0)
+        self.ctr = kwargs.get('ctr', 0.0)
+
+class Grupo:
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id', 0)
+        self.user_id = kwargs.get('user_id', 0)
+        self.grupo_id = kwargs.get('grupo_id', '')
+        self.grupo_nome = kwargs.get('grupo_nome', '')
+        self.selecionado = kwargs.get('selecionado', 0)
+        self.nicho = kwargs.get('nicho', 'todos')
+
+class User:
+    def __init__(self, **kwargs):
+        self.id = kwargs.get('id', 0)
+        self.nome = kwargs.get('nome', '')
+        self.email = kwargs.get('email', '')
+        self.plano_ativo = kwargs.get('plano_ativo', 1)
+        self.autopost = kwargs.get('autopost', 0)
