@@ -177,7 +177,7 @@ def register():
         if "UNIQUE constraint failed" in str(e) or "IntegrityError" in str(type(e).__name__):
             return error_response("Email já cadastrado", 400)
         logger.error(f"Erro no registro: {e}")
-        return error_response("Erro ao registrar usuário", 500)
+        return error_response(f"Erro ao registrar: {str(e)}", 500)
 
 
 @app.route('/api/auth/login', methods=['POST'])
