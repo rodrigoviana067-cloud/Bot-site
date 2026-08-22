@@ -280,7 +280,10 @@ def create_jwt_token(payload) -> str:
         payload = {"sub": payload}
     payload["exp"] = int(time.time()) + settings.JWT_EXPIRE_MINUTES * 60
     payload["iat"] = int(time.time())
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+    token = jwt.encode(payload, settings.JWT_SECRET, algorithm="HS256")
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+    return token
 
 def decode_jwt_token(token: str):
     """Decodifica token JWT"""
