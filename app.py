@@ -1180,3 +1180,8 @@ def piloto_toggle(user_id: int):
 @require_auth
 def piloto_config(user_id: int):
     return success_response(message="Configurações salvas!")
+
+@app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
+@require_auth
+def shopee_conversoes(user_id: int):
+    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
