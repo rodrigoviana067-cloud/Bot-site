@@ -94,6 +94,12 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
             cur.execute("CREATE TABLE IF NOT EXISTS agendamentos (id SERIAL PRIMARY KEY, user_id INTEGER, link TEXT, grupos TEXT, data_agendada TEXT, hora_agendada TEXT, status TEXT DEFAULT 'pendente', titulo TEXT, created_at TEXT DEFAULT NOW())")
             cur.execute("CREATE TABLE IF NOT EXISTS autopost_control (user_id INTEGER PRIMARY KEY, last_post_at TEXT, posts_today INTEGER DEFAULT 0, error_count INTEGER DEFAULT 0, total_posts INTEGER DEFAULT 0)")
             cur.execute("CREATE TABLE IF NOT EXISTS templates (id SERIAL PRIMARY KEY, user_id INTEGER, nome TEXT, copy TEXT, selecionado INTEGER DEFAULT 0, ab_test_group TEXT DEFAULT 'A', total_envios INTEGER DEFAULT 0, total_cliques INTEGER DEFAULT 0, ctr REAL DEFAULT 0.0, created_at TEXT DEFAULT NOW())")
+            cur.execute("CREATE TABLE IF NOT EXISTS posts (id SERIAL PRIMARY KEY, user_id INTEGER, grupo_id TEXT, titulo TEXT, link TEXT, link_afiliado TEXT, plataforma TEXT DEFAULT 'wh', template_id INTEGER, ab_test_group TEXT, status TEXT DEFAULT 'enviado', cliques INTEGER DEFAULT 0, created_at TEXT DEFAULT NOW())")
+            cur.execute("CREATE TABLE IF NOT EXISTS clicks (id SERIAL PRIMARY KEY, user_id INTEGER, post_id INTEGER, short_code TEXT UNIQUE NOT NULL, produto_link TEXT NOT NULL, grupo_id TEXT, template_id INTEGER, clicked_at TEXT, converted INTEGER DEFAULT 0, conversion_value REAL DEFAULT 0.0)")
+            cur.execute("CREATE TABLE IF NOT EXISTS horario_metrics (id SERIAL PRIMARY KEY, user_id INTEGER, grupo_id TEXT, hora INTEGER, dia_semana INTEGER, total_posts INTEGER DEFAULT 0, total_cliques INTEGER DEFAULT 0, ctr REAL DEFAULT 0.0)")
+            cur.execute("CREATE TABLE IF NOT EXISTS produtos_enviados (id SERIAL PRIMARY KEY, user_id INTEGER, product_id TEXT, grupo_id TEXT, enviado_em TEXT DEFAULT NOW())")
+            cur.execute("CREATE TABLE IF NOT EXISTS ab_tests (id SERIAL PRIMARY KEY, user_id INTEGER, nome TEXT, template_a_id INTEGER, template_b_id INTEGER, created_at TEXT DEFAULT NOW())")
+            cur.execute("CREATE TABLE IF NOT EXISTS pagamentos (id SERIAL PRIMARY KEY, user_id INTEGER, order_id TEXT UNIQUE, payment_id TEXT, status TEXT DEFAULT 'pending', valor REAL, plano TEXT, metodo TEXT, criado_em TEXT, processado INTEGER DEFAULT 0)")
             db.commit()
         logger.info("✅ PostgreSQL inicializado!")
 
