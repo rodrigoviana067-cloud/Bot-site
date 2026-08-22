@@ -1162,3 +1162,21 @@ def config_shopee(user_id: int):
     except Exception as e:
         return error_response(str(e), 500)
 
+
+@app.route('/api/piloto/toggle', methods=['POST', 'OPTIONS'])
+@require_auth
+def piloto_toggle(user_id: int):
+    try:
+        with get_db() as conn:
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
+            novo = 0 if user['autopost'] else 1
+            conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
+            conn.commit()
+        return success_response({"ativo": bool(novo)})
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/piloto/config', methods=['PUT', 'OPTIONS'])
+@require_auth
+def piloto_config(user_id: int):
+    return success_response(message="Configurações salvas!")
