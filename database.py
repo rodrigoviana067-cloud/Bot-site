@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Database - PostgreSQL com wrapper"""
+"""Database - PostgreSQL"""
 import os
 import logging
 from contextlib import contextmanager
@@ -15,10 +15,8 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
     class DB:
         def __init__(self, conn):
             self._conn = conn
-        
         def cursor(self):
             return self._conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        
         def execute(self, query, params=None):
             cur = self.cursor()
             if params:
@@ -27,10 +25,8 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
                 cur.execute(query)
             self._conn.commit()
             return cur
-        
         def commit(self):
             self._conn.commit()
-        
         def close(self):
             self._conn.close()
     
@@ -46,45 +42,9 @@ if DATABASE_URL and 'postgres' in DATABASE_URL:
     def init_database():
         with get_db() as db:
             cur = db.cursor()
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS users (
-                    id SERIAL PRIMARY KEY,
-                    nome TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    whatsapp TEXT,
-                    senha TEXT NOT NULL,
-                    trial_start TEXT,
-                    plano_ativo INTEGER DEFAULT 1,
-                    autopost INTEGER DEFAULT 0,
-                    bridge_id INTEGER DEFAULT 0,
-                    trial_used INTEGER DEFAULT 0,
-                    created_at TEXT DEFAULT NOW()
-                )
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS configs (
-                    user_id INTEGER PRIMARY KEY,
-                    shopee_app_id TEXT DEFAULT '',
-                    shopee_api_key TEXT DEFAULT '',
-                    intervalo INTEGER DEFAULT 30,
-                    min_desconto INTEGER DEFAULT 20,
-                    hora_inicio TEXT DEFAULT '08:00',
-                    hora_fim TEXT DEFAULT '22:00',
-                    max_posts_dia INTEGER DEFAULT 50,
-                    usar_smart_schedule INTEGER DEFAULT 1,
-                    usar_ab_testing INTEGER DEFAULT 1
-                )
-            """)
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS planos (
-                    id SERIAL PRIMARY KEY,
-                    nome TEXT NOT NULL,
-                    max_grupos INTEGER DEFAULT 5,
-                    max_posts_dia INTEGER DEFAULT 50,
-                    preco REAL DEFAULT 0.0,
-                    duracao_dias INTEGER DEFAULT 7
-                )
-            """)
+            cur.execute("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, nome TEXT NOT NULL, email TEXT UNIQUE NOT NULL, whatsapp TEXT, senha TEXT NOT NULL, trial_start TEXT, plano_ativo INTEGER DEFAULT 1, autopost INTEGER DEFAULT 0, bridge_id INTEGER DEFAULT 0, trial_used INTEGER DEFAULT 0, created_at TEXT DEFAULT NOW())")
+            cur.execute("CREATE TABLE IF NOT EXISTS configs (user_id INTEGER PRIMARY KEY, shopee_app_id TEXT DEFAULT '', shopee_api_key TEXT DEFAULT '', intervalo INTEGER DEFAULT 30, min_desconto INTEGER DEFAULT 20, hora_inicio TEXT DEFAULT '08:00', hora_fim TEXT DEFAULT '22:00', max_posts_dia INTEGER DEFAULT 50, usar_smart_schedule INTEGER DEFAULT 1, usar_ab_testing INTEGER DEFAULT 1)")
+            cur.execute("CREATE TABLE IF NOT EXISTS planos (id SERIAL PRIMARY KEY, nome TEXT NOT NULL, max_grupos INTEGER DEFAULT 5, max_posts_dia INTEGER DEFAULT 50, preco REAL DEFAULT 0.0, duracao_dias INTEGER DEFAULT 7)")
             cur.execute("SELECT COUNT(*) as c FROM planos")
             if cur.fetchone()['c'] == 0:
                 for p in [(1,'Trial',5,20,0,7),(2,'Pro',20,50,29.9,30),(3,'Elite',40,100,49.9,30),(4,'Enterprise',100,200,99.9,30)]:
