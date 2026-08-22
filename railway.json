@@ -1,0 +1,12 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "nixpacks": {
+      "aptPackages": ["nodejs", "npm"]
+    }
+  },
+  "deploy": {
+    "startCommand": "node server.js & python app.py",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
