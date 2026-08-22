@@ -301,7 +301,8 @@ def get_auth_user_id():
         token = auth.replace("Bearer ", "")
         try:
             payload = decode_jwt_token(token)
-            return payload.get("sub")
+            sub = payload.get("sub")
+            return int(sub) if sub else None
         except:
             pass
     return None
