@@ -5,7 +5,7 @@ from contextlib import contextmanager
 
 logger = logging.getLogger('affiliate.db')
 
-DATABASE_URL = os.environ.get('DATABASE_URL', '') or os.environ.get('DATABASE_PRIVATE_URL', '')
+DATABASE_URL = 'postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway'
 
 import psycopg2
 import psycopg2.extras
