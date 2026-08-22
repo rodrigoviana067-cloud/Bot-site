@@ -35,8 +35,8 @@ class AgendadorWorker:
                 pendentes = conn.execute(
                     """SELECT * FROM agendamentos 
                        WHERE status='pendente' 
-                         AND data_agendada <= ? 
-                         AND hora_agendada <= ?
+                         AND data_agendada <= %s 
+                         AND hora_agendada <= %s
                        ORDER BY data_agendada ASC, hora_agendada ASC
                        LIMIT 50""",
                     (current_date, current_time)
@@ -65,7 +65,7 @@ class AgendadorWorker:
                             enviados += 1
                             with get_db() as conn:
                                 conn.execute(
-                                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (?, ?, ?, ?)",
+                                    "INSERT INTO auto_post_log (user_id, grupo_id, titulo, status) VALUES (%s, %s, %s, %s)",
                                     (uid, gid, titulo[:100], 'enviado')
                                 )
                                 conn.commit()
@@ -81,7 +81,7 @@ class AgendadorWorker:
                 # Atualiza status
                 with get_db() as conn:
                     conn.execute(
-                        "UPDATE agendamentos SET status='concluido' WHERE id=?",
+                        "UPDATE agendamentos SET status='concluido' WHERE id=%s",
                         (aid,)
                     )
                     conn.commit()

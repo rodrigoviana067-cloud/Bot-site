@@ -270,12 +270,12 @@ class ShopeeService:
         item_id = None
         shop_id = None
 
-        match = re.search(r"shopee\.com\.br/(?:product|item)/(\d+)/(\d+)", link)
+        match = re.search(r"shopee\.com\.br/(%s:product|item)/(\d+)/(\d+)", link)
         if match:
             shop_id = int(match.group(1))
             item_id = int(match.group(2))
         else:
-            match = re.search(r"shopee\.com\.br/(?:product|item)/(\d+)", link)
+            match = re.search(r"shopee\.com\.br/(%s:product|item)/(\d+)", link)
             if match:
                 item_id = int(match.group(1))
 
