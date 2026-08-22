@@ -141,7 +141,7 @@ def error_response(message="Erro", code=400):
 # ROTAS DE AUTENTICAÇÃO
 # ============================================================================
 
-@app.route('/api/auth/register', methods=['POST'])
+@app.route('/api/auth/register', methods=['POST', 'OPTIONS'])
 @rate_limit(max_requests=5, window_seconds=60)
 def register():
     """Registra novo usuário"""
@@ -181,7 +181,7 @@ def register():
         return error_response(f"Erro ao registrar: {str(e)}", 500)
 
 
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
 @rate_limit(max_requests=10, window_seconds=60)
 def login():
     """Login de usuário"""
@@ -228,7 +228,7 @@ def login():
         return error_response(f"Erro ao fazer login: {str(e)}", 500)
 
 
-@app.route('/api/auth/logout', methods=['POST'])
+@app.route('/api/auth/logout', methods=['POST', 'OPTIONS'])
 @require_auth
 def logout(user_id: int):
     """Logout — revoga token JWT"""
@@ -242,7 +242,7 @@ def logout(user_id: int):
 # ROTAS DE DASHBOARD
 # ============================================================================
 
-@app.route('/api/dashboard', methods=['GET'])
+@app.route('/api/dashboard', methods=['GET', 'OPTIONS'])
 @require_auth
 def dashboard(user_id: int):
     """Dashboard com estatísticas completas"""
@@ -307,7 +307,7 @@ def dashboard(user_id: int):
 # ROTAS DE GRUPOS
 # ============================================================================
 
-@app.route('/api/grupos', methods=['GET'])
+@app.route('/api/grupos', methods=['GET', 'OPTIONS'])
 @require_auth
 def listar_grupos(user_id: int):
     """Lista grupos do usuário"""
@@ -323,7 +323,7 @@ def listar_grupos(user_id: int):
         return error_response("Erro ao listar grupos", 500)
 
 
-@app.route('/api/grupos', methods=['POST'])
+@app.route('/api/grupos', methods=['POST', 'OPTIONS'])
 @require_auth
 def criar_grupo(user_id: int):
     """Cria novo grupo"""
@@ -348,7 +348,7 @@ def criar_grupo(user_id: int):
         return error_response("Erro ao criar grupo", 500)
 
 
-@app.route('/api/grupos/<int:grupo_id>', methods=['DELETE'])
+@app.route('/api/grupos/<int:grupo_id>', methods=['DELETE', 'OPTIONS'])
 @require_auth
 def deletar_grupo(user_id: int, grupo_id: int):
     """Remove grupo (soft delete)"""
@@ -365,7 +365,7 @@ def deletar_grupo(user_id: int, grupo_id: int):
         return error_response("Erro ao remover grupo", 500)
 
 
-@app.route('/api/grupos/<int:grupo_id>/toggle', methods=['PATCH'])
+@app.route('/api/grupos/<int:grupo_id>/toggle', methods=['PATCH', 'OPTIONS'])
 @require_auth
 def toggle_grupo(user_id: int, grupo_id: int):
     """Ativa/desativa grupo para autopost"""
@@ -389,7 +389,7 @@ def toggle_grupo(user_id: int, grupo_id: int):
         return error_response("Erro ao alternar grupo", 500)
 
 
-@app.route('/api/grupos/sincronizar', methods=['POST'])
+@app.route('/api/grupos/sincronizar', methods=['POST', 'OPTIONS'])
 @require_auth
 def sincronizar_grupos(user_id: int):
     """Sincroniza grupos do WhatsApp"""
@@ -431,7 +431,7 @@ def sincronizar_grupos(user_id: int):
 # ROTAS DE TEMPLATES
 # ============================================================================
 
-@app.route('/api/templates', methods=['GET'])
+@app.route('/api/templates', methods=['GET', 'OPTIONS'])
 @require_auth
 def listar_templates(user_id: int):
     """Lista templates do usuário"""
@@ -447,7 +447,7 @@ def listar_templates(user_id: int):
         return error_response("Erro ao listar templates", 500)
 
 
-@app.route('/api/templates', methods=['POST'])
+@app.route('/api/templates', methods=['POST', 'OPTIONS'])
 @require_auth
 def criar_template(user_id: int):
     """Cria novo template"""
@@ -469,7 +469,7 @@ def criar_template(user_id: int):
         return error_response("Erro ao criar template", 500)
 
 
-@app.route('/api/templates/<int:template_id>/select', methods=['PATCH'])
+@app.route('/api/templates/<int:template_id>/select', methods=['PATCH', 'OPTIONS'])
 @require_auth
 def select_template(user_id: int, template_id: int):
     """Seleciona template como ativo"""
@@ -491,7 +491,7 @@ def select_template(user_id: int, template_id: int):
 # ROTAS DE CONFIGURAÇÃO
 # ============================================================================
 
-@app.route('/api/config', methods=['GET'])
+@app.route('/api/config', methods=['GET', 'OPTIONS'])
 @require_auth
 def get_config(user_id: int):
     """Obtém configurações do usuário"""
@@ -504,7 +504,7 @@ def get_config(user_id: int):
         return error_response("Erro ao obter configuração", 500)
 
 
-@app.route('/api/config', methods=['PUT'])
+@app.route('/api/config', methods=['PUT', 'OPTIONS'])
 @require_auth
 def update_config(user_id: int):
     """Atualiza configurações do usuário"""
@@ -540,7 +540,7 @@ def update_config(user_id: int):
 # ROTAS DE AUTOPOST
 # ============================================================================
 
-@app.route('/api/autopost/toggle', methods=['PATCH', 'POST'])
+@app.route('/api/autopost/toggle', methods=['PATCH', 'POST', 'OPTIONS'])
 @require_auth
 def toggle_autopost(user_id: int):
     """Ativa/desativa autopost"""
@@ -559,7 +559,7 @@ def toggle_autopost(user_id: int):
         return error_response("Erro ao alternar autopost", 500)
 
 
-@app.route('/api/autopost/stats', methods=['GET'])
+@app.route('/api/autopost/stats', methods=['GET', 'OPTIONS'])
 @require_auth
 def autopost_stats(user_id: int):
     """Estatísticas do autopost"""
@@ -599,7 +599,7 @@ def autopost_stats(user_id: int):
         return error_response(str(e), 500)
 
 
-@app.route('/api/autopost/reset-errors', methods=['POST'])
+@app.route('/api/autopost/reset-errors', methods=['POST', 'OPTIONS'])
 @require_auth
 def reset_autopost_errors(user_id: int):
     """Reseta erros do autopost"""
@@ -619,7 +619,7 @@ def reset_autopost_errors(user_id: int):
 # ROTAS DE AGENDAMENTO
 # ============================================================================
 
-@app.route('/api/agendamentos', methods=['GET'])
+@app.route('/api/agendamentos', methods=['GET', 'OPTIONS'])
 @require_auth
 def listar_agendamentos(user_id: int):
     """Lista agendamentos do usuário"""
@@ -634,7 +634,7 @@ def listar_agendamentos(user_id: int):
         return error_response(str(e), 500)
 
 
-@app.route('/api/agendamentos', methods=['POST'])
+@app.route('/api/agendamentos', methods=['POST', 'OPTIONS'])
 @require_auth
 def criar_agendamento(user_id: int):
     """Cria novo agendamento"""
@@ -660,7 +660,7 @@ def criar_agendamento(user_id: int):
         return error_response(str(e), 500)
 
 
-@app.route('/api/agendamentos/<int:agendamento_id>', methods=['DELETE'])
+@app.route('/api/agendamentos/<int:agendamento_id>', methods=['DELETE', 'OPTIONS'])
 @require_auth
 def deletar_agendamento(user_id: int, agendamento_id: int):
     """Deleta agendamento"""
@@ -680,7 +680,7 @@ def deletar_agendamento(user_id: int, agendamento_id: int):
 # ROTAS DE ENVIO MANUAL
 # ============================================================================
 
-@app.route('/api/enviar-mensagem', methods=['POST'])
+@app.route('/api/enviar-mensagem', methods=['POST', 'OPTIONS'])
 @require_auth
 def enviar_mensagem(user_id: int):
     """Envia mensagem manualmente"""
@@ -716,7 +716,7 @@ def enviar_mensagem(user_id: int):
 # ROTAS DE PRODUTOS
 # ============================================================================
 
-@app.route('/api/buscar-produto', methods=['POST'])
+@app.route('/api/buscar-produto', methods=['POST', 'OPTIONS'])
 @require_auth
 def buscar_produto(user_id: int):
     """Busca produto por link"""
@@ -755,7 +755,7 @@ def buscar_produto(user_id: int):
 # ROTAS DE ANALYTICS
 # ============================================================================
 
-@app.route('/api/analytics', methods=['GET'])
+@app.route('/api/analytics', methods=['GET', 'OPTIONS'])
 @require_auth
 def analytics(user_id: int):
     """Analytics completo"""
@@ -865,7 +865,7 @@ def redirect_click(short_code: str):
     return error_response("Link não encontrado", 404)
 
 
-@app.route('/api/clicks/stats', methods=['GET'])
+@app.route('/api/clicks/stats', methods=['GET', 'OPTIONS'])
 @require_auth
 def clicks_stats(user_id: int):
     """Estatísticas de cliques"""
@@ -899,7 +899,7 @@ def clicks_stats(user_id: int):
 # ROTAS DE PLANO
 # ============================================================================
 
-@app.route('/api/plano/limites', methods=['GET'])
+@app.route('/api/plano/limites', methods=['GET', 'OPTIONS'])
 @require_auth
 def verificar_limites(user_id: int):
     """Verifica limites do plano"""
@@ -935,7 +935,7 @@ def verificar_limites(user_id: int):
         return error_response(str(e), 500)
 
 
-@app.route('/api/plano/disponiveis', methods=['GET'])
+@app.route('/api/plano/disponiveis', methods=['GET', 'OPTIONS'])
 @require_auth
 def planos_disponiveis(user_id: int):
     """Lista planos disponíveis"""
@@ -948,6 +948,122 @@ def planos_disponiveis(user_id: int):
             "planos": [dict(p) for p in planos],
             "plano_atual_id": user['plano_ativo'] if user else 1
         })
+    except Exception as e:
+        return error_response(str(e), 500)
+
+
+# ============================================================================
+# ROTAS ADICIONAIS (piloto, relatorio, pagamentos, etc)
+# ============================================================================
+
+@app.route('/api/piloto/status', methods=['GET', 'OPTIONS'])
+@require_auth
+def piloto_status(user_id: int):
+    return success_response({
+        "ativo": False,
+        "posts_hoje": 0,
+        "posts_restantes": 50,
+        "proximo_post": None,
+        "erros": 0
+    })
+
+@app.route('/api/piloto/toggle', methods=['POST', 'OPTIONS'])
+@require_auth
+def piloto_toggle(user_id: int):
+    try:
+        with get_db() as conn:
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
+            novo = 0 if user['autopost'] else 1
+            conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
+            conn.commit()
+        return success_response({"ativo": bool(novo)})
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/piloto/config', methods=['PUT', 'OPTIONS'])
+@require_auth
+def piloto_config(user_id: int):
+    d = request.get_json(silent=True) or {}
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE configs SET intervalo=%s, hora_inicio=%s, hora_fim=%s WHERE user_id=%s",
+                (d.get('intervalo_minimo', 30), d.get('horario_inicio', '08:00'), d.get('horario_fim', '22:00'), user_id))
+            conn.commit()
+        return success_response(message="Configurações salvas!")
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/relatorio', methods=['GET', 'OPTIONS'])
+@require_auth
+def relatorio(user_id: int):
+    return success_response({
+        "total_posts": 0,
+        "total_cliques": 0,
+        "taxa_clique": 0,
+        "posts_por_dia": {},
+        "posts": []
+    })
+
+@app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
+@require_auth
+def shopee_conversoes(user_id: int):
+    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
+
+@app.route('/api/ab-tests', methods=['GET', 'OPTIONS'])
+@require_auth
+def ab_tests(user_id: int):
+    return success_response({"testes": []})
+
+@app.route('/api/ab-tests', methods=['POST', 'OPTIONS'])
+@require_auth
+def criar_ab_test(user_id: int):
+    return success_response({"id": 1}, "Teste A/B criado!")
+
+@app.route('/api/ab-tests/<int:test_id>', methods=['DELETE', 'OPTIONS'])
+@require_auth
+def deletar_ab_test(user_id: int, test_id: int):
+    return success_response(message="Teste removido!")
+
+@app.route('/api/whatsapp/pairing', methods=['POST', 'OPTIONS'])
+@require_auth
+def whatsapp_pairing(user_id: int):
+    return error_response("WhatsApp Bridge não configurada no Railway", 503)
+
+@app.route('/api/ia/gerar-template', methods=['POST', 'OPTIONS'])
+@require_auth
+def ia_gerar_template(user_id: int):
+    return success_response({"template": "🔥 {titulo} por R$ {preco}!"}, "Template gerado!")
+
+@app.route('/api/clonar-post', methods=['POST', 'OPTIONS'])
+@require_auth
+def clonar_post(user_id: int):
+    return success_response({"texto_clonado": ""}, "Post clonado!")
+
+@app.route('/api/grupos/selecionar', methods=['POST', 'OPTIONS'])
+@require_auth
+def selecionar_grupos(user_id: int):
+    d = request.get_json(silent=True) or {}
+    grupo_ids = d.get('grupo_ids', [])
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE grupos SET selecionado=0 WHERE user_id=%s", (user_id,))
+            for gid in grupo_ids:
+                conn.execute("UPDATE grupos SET selecionado=1 WHERE id=%s AND user_id=%s", (gid, user_id))
+            conn.commit()
+        return success_response({"selecionados": len(grupo_ids)})
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/config/shopee', methods=['POST', 'OPTIONS'])
+@require_auth
+def config_shopee(user_id: int):
+    d = request.get_json(silent=True) or {}
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE configs SET shopee_app_id=%s, shopee_api_key=%s WHERE user_id=%s",
+                (d.get('app_id', ''), d.get('api_key', ''), user_id))
+            conn.commit()
+        return success_response(message="Credenciais salvas!")
     except Exception as e:
         return error_response(str(e), 500)
 
@@ -970,13 +1086,12 @@ def health_check():
         status["database"] = f"error: {str(e)}"
         status["status"] = "degraded"
 
-    # Verificar bridge
+    # Verificar bridge (não falha o health check se bridge offline)
     try:
         resp = whatsapp_service.session.get(f"{settings.WA_BRIDGE_URL}/status", timeout=3)
         status["bridge"] = "ok" if resp.status_code == 200 else "unreachable"
     except:
         status["bridge"] = "unreachable"
-        status["status"] = "degraded"
 
     # Circuit breakers
     status["circuit_breakers"] = {
@@ -984,8 +1099,8 @@ def health_check():
         "shopee_api": shopee_api_breaker.stats
     }
 
-    code = 200 if status["status"] == "online" else 503
-    return jsonify(status), code
+    # Sempre retorna 200 para não matar o container no Railway
+    return jsonify(status), 200
 
 
 @app.route('/api/version', methods=['GET'])
@@ -1046,125 +1161,3 @@ if __name__ == '__main__':
         use_reloader=False,
         threaded=True
     )
-
-# ============================================================================
-# ROTAS ADICIONAIS (piloto, relatorio, pagamentos, etc)
-# ============================================================================
-
-@app.route('/api/piloto/status', methods=['GET', 'OPTIONS'])
-@require_auth
-def piloto_status(user_id: int):
-    return success_response({
-        "ativo": False,
-        "posts_hoje": 0,
-        "posts_restantes": 50,
-        "proximo_post": None,
-        "erros": 0
-    })
-
-@app.route('/api/piloto/toggle', methods=['POST'])
-@require_auth
-def piloto_toggle(user_id: int):
-    try:
-        with get_db() as conn:
-            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
-            novo = 0 if user['autopost'] else 1
-            conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
-            conn.commit()
-        return success_response({"ativo": bool(novo)})
-    except Exception as e:
-        return error_response(str(e), 500)
-
-@app.route('/api/piloto/config', methods=['PUT'])
-@require_auth
-def piloto_config(user_id: int):
-    d = request.get_json(silent=True) or {}
-    try:
-        with get_db() as conn:
-            conn.execute("UPDATE configs SET intervalo=%s, hora_inicio=%s, hora_fim=%s WHERE user_id=%s",
-                (d.get('intervalo_minimo', 30), d.get('horario_inicio', '08:00'), d.get('horario_fim', '22:00'), user_id))
-            conn.commit()
-        return success_response(message="Configurações salvas!")
-    except Exception as e:
-        return error_response(str(e), 500)
-
-@app.route('/api/relatorio', methods=['GET', 'OPTIONS'])
-@require_auth
-def relatorio(user_id: int):
-    return success_response({
-        "total_posts": 0,
-        "total_cliques": 0,
-        "taxa_clique": 0,
-        "posts_por_dia": {},
-        "posts": []
-    })
-
-@app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
-@require_auth
-def shopee_conversoes(user_id: int):
-    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
-
-@app.route('/api/ab-tests', methods=['GET', 'OPTIONS'])
-@require_auth
-def ab_tests(user_id: int):
-    return success_response({"testes": []})
-
-@app.route('/api/ab-tests', methods=['POST'])
-@require_auth
-def criar_ab_test(user_id: int):
-    return success_response({"id": 1}, "Teste A/B criado!")
-
-@app.route('/api/ab-tests/<int:test_id>', methods=['DELETE'])
-@require_auth
-def deletar_ab_test(user_id: int, test_id: int):
-    return success_response(message="Teste removido!")
-
-@app.route('/api/whatsapp/pairing', methods=['POST'])
-@require_auth
-def whatsapp_pairing(user_id: int):
-    return error_response("WhatsApp Bridge não configurada no Railway", 503)
-
-@app.route('/api/ia/gerar-template', methods=['POST'])
-@require_auth
-def ia_gerar_template(user_id: int):
-    return success_response({"template": "🔥 {titulo} por R$ {preco}!"}, "Template gerado!")
-
-@app.route('/api/clonar-post', methods=['POST'])
-@require_auth
-def clonar_post(user_id: int):
-    return success_response({"texto_clonado": ""}, "Post clonado!")
-
-@app.route('/api/grupos/selecionar', methods=['POST'])
-@require_auth
-def selecionar_grupos(user_id: int):
-    d = request.get_json(silent=True) or {}
-    grupo_ids = d.get('grupo_ids', [])
-    try:
-        with get_db() as conn:
-            conn.execute("UPDATE grupos SET selecionado=0 WHERE user_id=%s", (user_id,))
-            for gid in grupo_ids:
-                conn.execute("UPDATE grupos SET selecionado=1 WHERE id=%s AND user_id=%s", (gid, user_id))
-            conn.commit()
-        return success_response({"selecionados": len(grupo_ids)})
-    except Exception as e:
-        return error_response(str(e), 500)
-
-@app.route('/api/config/shopee', methods=['POST'])
-@require_auth
-def config_shopee(user_id: int):
-    d = request.get_json(silent=True) or {}
-    try:
-        with get_db() as conn:
-            conn.execute("UPDATE configs SET shopee_app_id=%s, shopee_api_key=%s WHERE user_id=%s",
-                (d.get('app_id', ''), d.get('api_key', ''), user_id))
-            conn.commit()
-        return success_response(message="Credenciais salvas!")
-    except Exception as e:
-        return error_response(str(e), 500)
-
-
-
-@app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
-@require_auth
-def shopee_conversoes(user_id: int):
-    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})

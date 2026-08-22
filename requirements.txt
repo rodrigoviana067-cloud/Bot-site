@@ -10,3 +10,4 @@ pyjwt
 passlib
 bcrypt
 psycopg2-binary
+gunicorn
