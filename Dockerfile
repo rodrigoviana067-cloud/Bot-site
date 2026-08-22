@@ -1,25 +1,23 @@
-FROM node:20-slim
-
-ENV DEBIAN_FRONTEND=noninteractive
-ENV NODE_ENV=production
+FROM node:20
 
 # Instalar Python e dependências
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
+    python3 python3-pip python3-venv python3-full \
     gcc g++ libpq-dev pkg-config curl git \
     && rm -rf /var/lib/apt/lists/*
 
-RUN ln -sf /usr/bin/python3 /usr/bin/python
-
 WORKDIR /app
 
-# Copiar e instalar Node.js dependencies PRIMEIRO
+# Copiar e instalar Node.js dependencies
 COPY package.json ./
 RUN npm install --production
 
-# Copiar e instalar Python dependencies
+# Copiar requirements.txt
 COPY requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Criar virtual environment e instalar Python dependencies
+RUN python3 -m venv /app/venv && \
+    /app/venv/bin/pip install --no-cache-dir -r requirements.txt
 
 # Copiar todo o código
 COPY . .
