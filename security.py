@@ -272,8 +272,6 @@ def is_token_revoked(token: str) -> bool:
     return token in _revoked_tokens
 
 
-# Alias para require_auth (app.py usa esse nome)
-require_auth = login_required
 
 
 def create_jwt_token(payload) -> str:
