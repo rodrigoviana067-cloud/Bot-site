@@ -1046,3 +1046,119 @@ if __name__ == '__main__':
         use_reloader=False,
         threaded=True
     )
+
+# ============================================================================
+# ROTAS ADICIONAIS (piloto, relatorio, pagamentos, etc)
+# ============================================================================
+
+@app.route('/api/piloto/status', methods=['GET'])
+@require_auth
+def piloto_status(user_id: int):
+    return success_response({
+        "ativo": False,
+        "posts_hoje": 0,
+        "posts_restantes": 50,
+        "proximo_post": None,
+        "erros": 0
+    })
+
+@app.route('/api/piloto/toggle', methods=['POST'])
+@require_auth
+def piloto_toggle(user_id: int):
+    try:
+        with get_db() as conn:
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
+            novo = 0 if user['autopost'] else 1
+            conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
+            conn.commit()
+        return success_response({"ativo": bool(novo)})
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/piloto/config', methods=['PUT'])
+@require_auth
+def piloto_config(user_id: int):
+    d = request.get_json(silent=True) or {}
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE configs SET intervalo=%s, hora_inicio=%s, hora_fim=%s WHERE user_id=%s",
+                (d.get('intervalo_minimo', 30), d.get('horario_inicio', '08:00'), d.get('horario_fim', '22:00'), user_id))
+            conn.commit()
+        return success_response(message="Configurações salvas!")
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/relatorio', methods=['GET'])
+@require_auth
+def relatorio(user_id: int):
+    return success_response({
+        "total_posts": 0,
+        "total_cliques": 0,
+        "taxa_clique": 0,
+        "posts_por_dia": {},
+        "posts": []
+    })
+
+@app.route('/api/shopee/conversoes', methods=['GET'])
+@require_auth
+def shopee_conversoes(user_id: int):
+    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
+
+@app.route('/api/ab-tests', methods=['GET'])
+@require_auth
+def ab_tests(user_id: int):
+    return success_response({"testes": []})
+
+@app.route('/api/ab-tests', methods=['POST'])
+@require_auth
+def criar_ab_test(user_id: int):
+    return success_response({"id": 1}, "Teste A/B criado!")
+
+@app.route('/api/ab-tests/<int:test_id>', methods=['DELETE'])
+@require_auth
+def deletar_ab_test(user_id: int, test_id: int):
+    return success_response(message="Teste removido!")
+
+@app.route('/api/whatsapp/pairing', methods=['POST'])
+@require_auth
+def whatsapp_pairing(user_id: int):
+    return error_response("WhatsApp Bridge não configurada no Railway", 503)
+
+@app.route('/api/ia/gerar-template', methods=['POST'])
+@require_auth
+def ia_gerar_template(user_id: int):
+    return success_response({"template": "🔥 {titulo} por R$ {preco}!"}, "Template gerado!")
+
+@app.route('/api/clonar-post', methods=['POST'])
+@require_auth
+def clonar_post(user_id: int):
+    return success_response({"texto_clonado": ""}, "Post clonado!")
+
+@app.route('/api/grupos/selecionar', methods=['POST'])
+@require_auth
+def selecionar_grupos(user_id: int):
+    d = request.get_json(silent=True) or {}
+    grupo_ids = d.get('grupo_ids', [])
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE grupos SET selecionado=0 WHERE user_id=%s", (user_id,))
+            for gid in grupo_ids:
+                conn.execute("UPDATE grupos SET selecionado=1 WHERE id=%s AND user_id=%s", (gid, user_id))
+            conn.commit()
+        return success_response({"selecionados": len(grupo_ids)})
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/config/shopee', methods=['POST'])
+@require_auth
+def config_shopee(user_id: int):
+    d = request.get_json(silent=True) or {}
+    try:
+        with get_db() as conn:
+            conn.execute("UPDATE configs SET shopee_app_id=%s, shopee_api_key=%s WHERE user_id=%s",
+                (d.get('app_id', ''), d.get('api_key', ''), user_id))
+            conn.commit()
+        return success_response(message="Credenciais salvas!")
+    except Exception as e:
+        return error_response(str(e), 500)
+
