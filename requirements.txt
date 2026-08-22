@@ -11,3 +11,4 @@ passlib
 bcrypt
 psycopg2-binary
 gunicorn
+gunicorn
