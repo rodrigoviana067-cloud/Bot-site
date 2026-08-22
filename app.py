@@ -1051,7 +1051,7 @@ if __name__ == '__main__':
 # ROTAS ADICIONAIS (piloto, relatorio, pagamentos, etc)
 # ============================================================================
 
-@app.route('/api/piloto/status', methods=['GET'])
+@app.route('/api/piloto/status', methods=['GET', 'OPTIONS'])
 @require_auth
 def piloto_status(user_id: int):
     return success_response({
@@ -1088,7 +1088,7 @@ def piloto_config(user_id: int):
     except Exception as e:
         return error_response(str(e), 500)
 
-@app.route('/api/relatorio', methods=['GET'])
+@app.route('/api/relatorio', methods=['GET', 'OPTIONS'])
 @require_auth
 def relatorio(user_id: int):
     return success_response({
@@ -1099,12 +1099,12 @@ def relatorio(user_id: int):
         "posts": []
     })
 
-@app.route('/api/shopee/conversoes', methods=['GET'])
+@app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
 @require_auth
 def shopee_conversoes(user_id: int):
     return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
 
-@app.route('/api/ab-tests', methods=['GET'])
+@app.route('/api/ab-tests', methods=['GET', 'OPTIONS'])
 @require_auth
 def ab_tests(user_id: int):
     return success_response({"testes": []})
