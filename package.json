@@ -1,7 +1,6 @@
 {
-  "name": "whatsapp-bridge",
-  "version": "9.3.0",
-  "main": "server.js",
+  "name": "wa-affiliate-pro",
+  "version": "1.0.0",
   "scripts": {
     "start": "node server.js"
   },

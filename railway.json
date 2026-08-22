@@ -1,0 +1,10 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "languages": ["nodejs", "python"]
+  },
+  "deploy": {
+    "startCommand": "bash start.sh",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}
