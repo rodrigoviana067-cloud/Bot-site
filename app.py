@@ -12,7 +12,7 @@ import signal
 import sys
 from datetime import datetime, timedelta
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 from pydantic import BaseModel, Field
 
@@ -37,6 +37,15 @@ app = Flask(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}})
 app.config['SECRET_KEY'] = settings.SECRET_KEY
 app.config['JSON_SORT_KEYS'] = False
+
+@app.before_request
+def handle_preflight():
+    if request.method == 'OPTIONS':
+        resp = make_response('', 200)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return resp
 
 # Logging estruturado
 class JSONFormatter(logging.Formatter):
