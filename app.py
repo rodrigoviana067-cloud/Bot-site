@@ -1042,7 +1042,7 @@ def whatsapp_pairing(user_id: int):
     if not phone:
         return error_response("Número obrigatório", 400)
     try:
-        resp = req.post('http://127.0.0.1:3001/pairing-code', json={"userId": str(user_id), "phoneNumber": phone}, timeout=60)
+        resp = req.post('http://127.0.0.1:3000/pairing-code', json={"userId": str(user_id), "phoneNumber": phone}, timeout=60)
         if resp.status_code == 200:
             result = resp.json()
             if result.get('success'):
