@@ -1,32 +1,35 @@
 #!/bin/bash
 
 echo "══════════════════════════════════════════════════════════════"
-echo "  WA Affiliate Pro — Iniciando"
+echo "  WA Affiliate Pro v6.0 — Docker Container"
 echo "══════════════════════════════════════════════════════════════"
+echo ""
 
-# Verificar Node.js
-echo "🔍 Verificando Node.js..."
-if command -v node &> /dev/null; then
-    echo "✅ Node.js: $(node --version)"
-    echo "✅ npm: $(npm --version)"
-    
-    # Instalar dependências se necessário
-    if [ ! -d "node_modules" ]; then
-        echo "📦 Instalando dependências do bridge..."
-        npm install
+# Verificar ambiente
+echo "🔍 Ambiente:"
+echo "   Node.js: $(node --version)"
+echo "   npm: $(npm --version)"
+echo "   Python: $(python3 --version)"
+echo "   Porta: $PORT"
+echo ""
+
+# Iniciar Bridge Node.js em background
+echo "🚀 Iniciando WhatsApp Bridge..."
+node server.js 2>&1 | while read line; do
+    echo "[BRIDGE] $line"
+done &
+BRIDGE_PID=$!
+
+# Aguardar bridge subir
+echo "⏳ Aguardando bridge..."
+for i in {1..30}; do
+    sleep 1
+    if curl -s http://127.0.0.1:3000/health > /dev/null 2>&1; then
+        echo "✅ Bridge online!"
+        break
     fi
-    
-    # Iniciar bridge em background
-    echo "🚀 Iniciando Bridge..."
-    node server.js &
-    BRIDGE_PID=$!
-    sleep 5
-    echo "✅ Bridge PID: $BRIDGE_PID"
-else
-    echo "❌ Node.js não encontrado!"
-    echo "   O bridge WhatsApp não vai funcionar."
-fi
+done
 
 echo ""
-echo "🚀 Iniciando Backend Python na porta $PORT..."
-exec gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 30
+echo "🚀 Iniciando Backend Python..."
+exec gunicorn app:app --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 30
