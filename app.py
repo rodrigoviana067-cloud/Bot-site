@@ -300,7 +300,7 @@ def dashboard(user_id: int):
 
     except Exception as e:
         logger.error(f"Erro no dashboard: {e}")
-        return error_response("Erro ao carregar dashboard", 500)
+        return error_response(f"Erro dashboard: {str(e)}", 500)
 
 
 # ============================================================================
