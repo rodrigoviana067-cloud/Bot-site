@@ -34,7 +34,7 @@ from agendador import agendador_worker
 # ============================================================================
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r'/*': {'origins': '*'}})
 app.config['SECRET_KEY'] = settings.SECRET_KEY
 app.config['JSON_SORT_KEYS'] = False
 
