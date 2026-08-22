@@ -1036,7 +1036,21 @@ def deletar_ab_test(user_id: int, test_id: int):
 @app.route('/api/whatsapp/pairing', methods=['POST', 'OPTIONS'])
 @require_auth
 def whatsapp_pairing(user_id: int):
-    return error_response("WhatsApp Bridge não configurada no Railway", 503)
+    import requests as req
+    data = request.get_json(silent=True) or {}
+    phone = data.get('phone', '')
+    if not phone:
+        return error_response("Número obrigatório", 400)
+    try:
+        resp = req.post('http://127.0.0.1:3000/pairing-code', json={"userId": str(user_id), "phoneNumber": phone}, timeout=60)
+        if resp.status_code == 200:
+            result = resp.json()
+            if result.get('success'):
+                return success_response({"code": result.get('pairingCode'), "phone": phone}, "Código gerado!")
+            return error_response(result.get('error', 'Erro'), 500)
+        return error_response(f"Bridge erro {resp.status_code}", 503)
+    except Exception as e:
+        return error_response(f"Bridge offline: {str(e)}", 503)
 
 @app.route('/api/ia/gerar-template', methods=['POST', 'OPTIONS'])
 @require_auth
