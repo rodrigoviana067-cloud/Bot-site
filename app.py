@@ -164,7 +164,7 @@ def register():
             conn.execute("INSERT INTO configs (user_id) VALUES (%s)", (user_id,))
             conn.commit()
 
-        token = create_jwt_token(user_id)
+        token = create_jwt_token({"sub": str(user_id)})
         logger.info(f"✅ Usuário registrado: {data.email}", extra={"user_id": user_id, "email": data.email})
 
         return success_response({
@@ -199,7 +199,7 @@ def login():
         if not user or not verify_password(data.senha, user['senha']):
             return error_response("Email ou senha inválidos", 401)
 
-        token = create_jwt_token(user["id"])
+        token = create_jwt_token({"sub": str(user["id"])})
 
         # Calcular dias trial
         dias = 0
