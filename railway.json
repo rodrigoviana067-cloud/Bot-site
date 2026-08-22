@@ -2,7 +2,7 @@
   "build": {
     "builder": "NIXPACKS",
     "nixpacks": {
-      "aptPackages": ["nodejs", "npm"]
+      "aptPackages": ["nodejs", "npm", "python3", "python3-pip"]
     }
   },
   "deploy": {
