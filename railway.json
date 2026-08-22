@@ -6,7 +6,7 @@
     }
   },
   "deploy": {
-    "startCommand": "node server.js & python app.py",
+    "startCommand": "node server.js & python3 app.py",
     "restartPolicyType": "ON_FAILURE"
   }
 }
