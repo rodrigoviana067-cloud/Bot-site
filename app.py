@@ -1016,7 +1016,6 @@ def relatorio(user_id: int):
 @app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
 @require_auth
 def shopee_conversoes(user_id: int):
-    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
 
 @app.route('/api/ab-tests', methods=['GET', 'OPTIONS'])
 @require_auth
@@ -1093,7 +1092,6 @@ def clonar_post(user_id: int):
         texto += f"📉 Desconto de {produto.desconto_pct}%\n\n"
         texto += f"👉 {produto.link_afiliado}\n\n"
         texto += f"🏪 Loja: {produto.loja}\n"
-        texto += f"💵 Comissão estimada: R$ {produto.comissao_estimada:.2f}"
         
         return success_response({
             "texto_clonado": texto,
