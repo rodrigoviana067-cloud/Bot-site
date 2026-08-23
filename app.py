@@ -1158,20 +1158,6 @@ def selecionar_grupos(user_id: int):
             conn.commit()
         return success_response({"selecionados": len(grupo_ids)})
     except Exception as e:
-        return error_response(str(e), 500)
-
-@app.route('/api/config/shopee', methods=['POST', 'OPTIONS'])
-@require_auth
-def config_shopee(user_id: int):
-    d = request.get_json(silent=True) or {}
-    try:
-        with get_db() as conn:
-            conn.execute("UPDATE configs SET shopee_app_id=%s, shopee_api_key=%s WHERE user_id=%s",
-                (d.get('app_id', ''), d.get('api_key', ''), user_id))
-            conn.commit()
-        return success_response(message="Credenciais salvas!")
-    except Exception as e:
-        return error_response(str(e), 500)
 
 
 # ============================================================================
