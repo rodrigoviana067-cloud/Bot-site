@@ -1060,7 +1060,49 @@ def ia_gerar_template(user_id: int):
 @app.route('/api/clonar-post', methods=['POST', 'OPTIONS'])
 @require_auth
 def clonar_post(user_id: int):
-    return success_response({"texto_clonado": ""}, "Post clonado!")
+    """Clona um post a partir de um link de produto"""
+    d = request.get_json(silent=True) or {}
+    link = d.get('link', '')
+    
+    if not link:
+        return error_response("Link obrigatório", 400)
+    
+    try:
+        with get_db() as conn:
+            config = conn.execute(
+                "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=%s",
+                (user_id,)
+            ).fetchone()
+        
+        if not config or not config['shopee_app_id']:
+            return error_response("Configure sua API Shopee", 400)
+        
+        # Buscar produto na Shopee
+        produto = shopee_service.buscar_produto_por_link(
+            config['shopee_app_id'],
+            config['shopee_api_key'],
+            link
+        )
+        
+        if not produto:
+            return error_response("Produto não encontrado", 404)
+        
+        # Gerar texto clonado
+        texto = f"🔥 {produto.titulo}\n\n"
+        texto += f"💰 De R$ {produto.preco_original:.2f} por R$ {produto.preco:.2f}\n"
+        texto += f"📉 Desconto de {produto.desconto_pct}%\n\n"
+        texto += f"👉 {produto.link_afiliado}\n\n"
+        texto += f"🏪 Loja: {produto.loja}\n"
+        texto += f"💵 Comissão estimada: R$ {produto.comissao_estimada:.2f}"
+        
+        return success_response({
+            "texto_clonado": texto,
+            "produto": produto.to_dict()
+        }, "Post clonado com sucesso!")
+        
+    except Exception as e:
+        logger.error(f"Erro ao clonar post: {e}")
+        return error_response(f"Erro ao clonar: {str(e)}", 500)
 
 @app.route('/api/grupos/selecionar', methods=['POST', 'OPTIONS'])
 @require_auth
