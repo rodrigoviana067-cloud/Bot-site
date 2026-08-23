@@ -1158,7 +1158,7 @@ def selecionar_grupos(user_id: int):
             conn.commit()
         return success_response({"selecionados": len(grupo_ids)})
     except Exception as e:
-
+        return error_response(str(e), 500)
 
 # ============================================================================
 # HEALTH CHECK
