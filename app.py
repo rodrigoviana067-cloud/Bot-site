@@ -1016,6 +1016,7 @@ def relatorio(user_id: int):
 @app.route('/api/shopee/conversoes', methods=['GET', 'OPTIONS'])
 @require_auth
 def shopee_conversoes(user_id: int):
+    return success_response({"conversoes": [], "total_vendas": 0, "total_comissao": 0})
 
 @app.route('/api/ab-tests', methods=['GET', 'OPTIONS'])
 @require_auth
