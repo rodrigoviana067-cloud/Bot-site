@@ -500,12 +500,28 @@ def select_template(user_id: int, template_id: int):
 # ROTAS DE CONFIGURAÇÃO
 # ============================================================================
 
+def _ensure_config_exists(conn, user_id: int):
+    """Garante que existe uma linha na tabela configs para o usuário."""
+    existing = conn.execute(
+        "SELECT id FROM configs WHERE user_id=%s", (user_id,)
+    ).fetchone()
+    if not existing:
+        conn.execute(
+            "INSERT INTO configs (user_id) VALUES (%s)",
+            (user_id,)
+        )
+        conn.commit()
+        logger.info(f"📝 Linha de config criada para user {user_id}")
+    return existing is not None
+
+
 @app.route('/api/config', methods=['GET', 'OPTIONS'])
 @require_auth
 def get_config(user_id: int):
     """Obtém configurações do usuário"""
     try:
         with get_db() as conn:
+            _ensure_config_exists(conn, user_id)
             config = conn.execute("SELECT * FROM configs WHERE user_id=%s", (user_id,)).fetchone()
         return success_response(dict(config) if config else {})
     except Exception as e:
@@ -532,10 +548,10 @@ def update_config(user_id: int):
                 values.append(value)
 
         if updates:
-            values.append(user_id)
-            query = f"UPDATE configs SET {', '.join(updates)} WHERE user_id=%s"
-
             with get_db() as conn:
+                _ensure_config_exists(conn, user_id)
+                values.append(user_id)
+                query = f"UPDATE configs SET {', '.join(updates)} WHERE user_id=%s"
                 conn.execute(query, values)
                 conn.commit()
 
@@ -544,6 +560,32 @@ def update_config(user_id: int):
         logger.error(f"Erro ao atualizar config: {e}")
         return error_response("Erro ao atualizar configuração", 500)
 
+
+@app.route('/api/config/shopee', methods=['POST', 'OPTIONS'])
+@require_auth
+def config_shopee(user_id: int):
+    """Salva credenciais da API Shopee"""
+    d = request.get_json(silent=True) or {}
+    app_id = d.get('app_id', '').strip()
+    api_key = d.get('api_key', '').strip()
+
+    if not app_id or not api_key:
+        return error_response("app_id e api_key são obrigatórios", 400)
+
+    try:
+        with get_db() as conn:
+            _ensure_config_exists(conn, user_id)
+            conn.execute(
+                "UPDATE configs SET shopee_app_id=%s, shopee_api_key=%s WHERE user_id=%s",
+                (app_id, api_key, user_id)
+            )
+            conn.commit()
+
+        logger.info(f"✅ Credenciais Shopee salvas para user {user_id}")
+        return success_response(message="Credenciais salvas!")
+    except Exception as e:
+        logger.error(f"Erro ao salvar credenciais Shopee: {e}", extra={"user_id": user_id})
+        return error_response(str(e), 500)
 
 # ============================================================================
 # ROTAS DE AUTOPOST
