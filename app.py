@@ -1184,3 +1184,18 @@ if __name__ == '__main__':
         use_reloader=False,
         threaded=True
     )
+
+# Rota para deletar template
+@app.route('/api/templates/<int:template_id>', methods=['DELETE', 'OPTIONS'])
+@require_auth
+def deletar_template(user_id: int, template_id: int):
+    try:
+        with get_db() as conn:
+            conn.execute(
+                "DELETE FROM templates WHERE id=%s AND user_id=%s",
+                (template_id, user_id)
+            )
+            conn.commit()
+        return success_response(message="Template deletado com sucesso!")
+    except Exception as e:
+        return error_response(str(e), 500)
