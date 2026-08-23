@@ -1,16 +1,16 @@
 #!/bin/bash
 
-echo "🔍 Node.js: $(node --version)"
-echo "🔍 Python: $(python3 --version)"
-echo "🔍 Porta Railway: $PORT"
+echo "🚀 WA Affiliate Pro v6.0"
 
-export PATH="/app/venv/bin:$PORT"
+# Iniciar Bridge em background (não bloqueia)
+if command -v node &> /dev/null; then
+    echo "✅ Node.js: $(node --version)"
+    PORT=3000 node server.js &
+else
+    echo "⚠️  Node.js não encontrado"
+fi
 
-# Iniciar Bridge na porta 3000 (fixa, NÃO usa $PORT)
-echo "🚀 Iniciando Bridge na porta 3000..."
-PORT=3000 node server.js &
-sleep 5
-
-# Iniciar Backend na porta $PORT (Railway)
+# Iniciar Backend imediatamente (não espera bridge)
 echo "🚀 Iniciando Backend na porta $PORT..."
+export PATH="/app/venv/bin:$PATH"
 exec /app/venv/bin/gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --timeout 30
