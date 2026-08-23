@@ -503,7 +503,7 @@ def select_template(user_id: int, template_id: int):
 def _ensure_config_exists(conn, user_id: int):
     """Garante que existe uma linha na tabela configs para o usuário."""
     existing = conn.execute(
-        "SELECT id FROM configs WHERE user_id=%s", (user_id,)
+        "SELECT 1 FROM configs WHERE user_id=%s", (user_id,)
     ).fetchone()
     if not existing:
         conn.execute(
