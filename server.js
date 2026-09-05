@@ -359,8 +359,22 @@ async function criarSocket(uid, forcarNovo = false, isPairing = false, pairingCa
     uid = String(uid);
 
     if (isSessaoCorrompida(uid)) {
-        logger.warn('Sessão corrompida — limpando', uid);
-        deletarArquivosSessao(uid);
+        logger.warn('Sessão corrompida — buscando do PostgreSQL', uid);
+        // Buscar sessão do PostgreSQL
+        try {
+            const resp = await fetch('http://127.0.0.1:8080/api/whatsapp/get-creds?userId=' + uid);
+            if (resp.ok) {
+                const data = await resp.json();
+                if (data.success && data.creds && data.creds.length > 10) {
+                    garantirDir(uid);
+                    const credsPath = path.join(CONFIG.SESSIONS_DIR, uid, 'creds.json');
+                    fs.writeFileSync(credsPath, data.creds);
+                    logger.info('✅ Sessão restaurada do PostgreSQL!', uid);
+                }
+            }
+        } catch (e) {
+            logger.warn('Não conseguiu buscar do PG: ' + e.message, uid);
+        }
     }
 
     if (sessaoOk(uid) && !forcarNovo) {
