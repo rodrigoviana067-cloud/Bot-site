@@ -1105,6 +1105,40 @@ def criar_ab_test(user_id: int):
 def deletar_ab_test(user_id: int, test_id: int):
     return success_response(message="Teste removido!")
 
+@app.route('/api/whatsapp/save-creds', methods=['POST'])
+def save_wa_creds():
+    try:
+        import psycopg2, os
+        data = request.get_json(silent=True) or {}
+        uid = str(data.get('userId', ''))
+        creds = data.get('creds', '')
+        connected = 1 if data.get('connected', False) else 0
+        
+        conn = psycopg2.connect(os.environ.get('DATABASE_URL', 'postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway'))
+        cur = conn.cursor()
+        cur.execute("INSERT INTO wa_sessions (user_id, creds_json, connected, updated_at) VALUES (%s, %s, %s, NOW()) ON CONFLICT (user_id) DO UPDATE SET creds_json=%s, connected=%s, updated_at=NOW()", (uid, creds, connected, creds, connected))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+@app.route('/api/whatsapp/get-creds', methods=['GET'])
+def get_wa_creds():
+    try:
+        import psycopg2, os
+        uid = request.args.get('userId', '')
+        conn = psycopg2.connect(os.environ.get('DATABASE_URL', 'postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway'))
+        cur = conn.cursor()
+        cur.execute("SELECT creds_json, connected FROM wa_sessions WHERE user_id=%s", (uid,))
+        row = cur.fetchone()
+        conn.close()
+        if row:
+            return jsonify({"success": True, "creds": row[0], "connected": bool(row[1])})
+        return jsonify({"success": False, "error": "Sem sessão"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
 @app.route('/api/whatsapp/status', methods=['GET'])
 @require_auth
 def whatsapp_status(user_id: int):

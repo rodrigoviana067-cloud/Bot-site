@@ -545,6 +545,21 @@ async function criarSocket(uid, forcarNovo = false, isPairing = false, pairingCa
     sock.ev.on('creds.update', async () => {
         await saveCreds();
         logger.debug('Credenciais salvas', uid);
+        // Salvar no PostgreSQL via backend
+        try {
+            const fs = require('fs');
+            const credsPath = path.join(userDir, 'creds.json');
+            if (fs.existsSync(credsPath)) {
+                const credsData = fs.readFileSync(credsPath, 'utf8');
+                await fetch('http://127.0.0.1:8080/api/whatsapp/save-creds', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({userId: uid, creds: credsData, connected: true})
+                });
+            }
+        } catch (e) {
+            logger.debug('Falha ao salvar no PG: ' + e.message, uid);
+        }
     });
 
     return sock;
