@@ -1012,13 +1012,20 @@ def planos_disponiveis(user_id: int):
 @app.route('/api/piloto/status', methods=['GET', 'OPTIONS'])
 @require_auth
 def piloto_status(user_id: int):
-    return success_response({
-        "ativo": False,
-        "posts_hoje": 0,
-        "posts_restantes": 50,
-        "proximo_post": None,
-        "erros": 0
-    })
+    try:
+        with get_db() as conn:
+            user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
+            control = conn.execute("SELECT posts_today, error_count FROM autopost_control WHERE user_id=%s", (user_id,)).fetchone()
+            ativo = bool(user['autopost']) if user else False
+            return success_response({
+                "ativo": ativo,
+                "posts_hoje": control['posts_today'] if control else 0,
+                "posts_restantes": 200 - (control['posts_today'] if control else 0),
+                "proximo_post": None,
+                "erros": control['error_count'] if control else 0
+            })
+    except Exception as e:
+        return error_response(str(e), 500)
 
 @app.route('/api/piloto/toggle', methods=['POST', 'OPTIONS'])
 @require_auth
