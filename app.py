@@ -1021,9 +1021,9 @@ def piloto_status(user_id: int):
             ativo = bool(user['autopost']) if user else False
             intervalo = int(config['intervalo']) if config and config['intervalo'] else 30
             
-            # Calcular próximo post
+            # Calcular próximo post (BRASIL UTC-3)
             proximo = None
-            agora = datetime.now()
+            agora = datetime.now() - timedelta(hours=3)
             if ativo and control and control['last_post_at']:
                 try:
                     last = datetime.fromisoformat(control['last_post_at'].replace(' ', 'T').split('+')[0])
