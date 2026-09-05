@@ -1273,8 +1273,8 @@ if __name__ == '__main__':
 
     # Iniciar workers
     # Workers desativados temporariamente
-    # autopost_engine.start()
-    # agendador_worker.start()
+    autopost_engine.start()
+    agendador_worker.start()
 
     app.run(
         host='0.0.0.0',
