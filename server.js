@@ -967,9 +967,19 @@ process.on('unhandledRejection', reason => {
 // ══════════════════════════════════════════════════════════════
 
 async function carregarSessoes() {
-    // Buscar TODAS as sessões do PostgreSQL
+    // Buscar TODAS as sessões do PostgreSQL (com retry)
     try {
-        const resp = await fetch('http://127.0.0.1:8080/api/whatsapp/list-sessions');
+        let resp;
+        for (let tentativa = 0; tentativa < 10; tentativa++) {
+            try {
+                resp = await fetch('http://127.0.0.1:8080/api/whatsapp/list-sessions');
+                if (resp.ok) break;
+            } catch (e) {
+                logger.debug(`Backend ainda não pronto (tentativa ${tentativa + 1}/10)`, uid);
+            }
+            await sleep(5_000);
+        }
+        if (!resp) throw new Error('Backend não respondeu');
         if (resp.ok) {
             const data = await resp.json();
             if (data.sessions && data.sessions.length > 0) {
