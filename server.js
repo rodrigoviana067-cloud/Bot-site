@@ -982,7 +982,9 @@ async function carregarSessoes() {
         if (!resp) throw new Error('Backend não respondeu');
         if (resp.ok) {
             const data = await resp.json();
+            console.log('📥 Sessions recebidas:', JSON.stringify(data));
             if (data.sessions && data.sessions.length > 0) {
+                console.log('🔄 Restaurando', data.sessions.length, 'sessões...');
                 logger.info(`${data.sessions.length} sessão(ões) no PostgreSQL — restaurando...`);
                 for (const uid of data.sessions) {
                     garantirDir(uid);
@@ -990,9 +992,11 @@ async function carregarSessoes() {
                     const credsResp = await fetch('http://127.0.0.1:8080/api/whatsapp/get-creds?userId=' + uid);
                     if (credsResp.ok) {
                         const credsData = await credsResp.json();
+                        console.log('📦 Creds recebidas para', uid, ':', credsData.creds?.length || 0, 'bytes');
                         if (credsData.success && credsData.creds && credsData.creds.length > 10) {
                             const credsPath = path.join(CONFIG.SESSIONS_DIR, uid, 'creds.json');
                             fs.writeFileSync(credsPath, credsData.creds);
+                            console.log('✅ CREDS ESCRITA em', credsPath);
                             logger.info('✅ Sessão restaurada do PostgreSQL!', uid);
                         }
                     }
