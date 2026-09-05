@@ -1015,13 +1015,28 @@ def piloto_status(user_id: int):
     try:
         with get_db() as conn:
             user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
-            control = conn.execute("SELECT posts_today, error_count FROM autopost_control WHERE user_id=%s", (user_id,)).fetchone()
+            control = conn.execute("SELECT posts_today, error_count, last_post_at FROM autopost_control WHERE user_id=%s", (user_id,)).fetchone()
+            config = conn.execute("SELECT intervalo, hora_inicio, hora_fim FROM configs WHERE user_id=%s", (user_id,)).fetchone()
+            
             ativo = bool(user['autopost']) if user else False
+            intervalo = int(config['intervalo']) if config and config['intervalo'] else 30
+            
+            # Calcular próximo post
+            proximo = None
+            if ativo and control and control['last_post_at']:
+                try:
+                    last = datetime.fromisoformat(control['last_post_at'].replace(' ', 'T').split('+')[0])
+                    proximo = (last + timedelta(minutes=intervalo)).isoformat()
+                except:
+                    proximo = (datetime.now() + timedelta(minutes=intervalo)).isoformat()
+            elif ativo:
+                proximo = (datetime.now() + timedelta(minutes=intervalo)).isoformat()
+            
             return success_response({
                 "ativo": ativo,
                 "posts_hoje": control['posts_today'] if control else 0,
                 "posts_restantes": 200 - (control['posts_today'] if control else 0),
-                "proximo_post": None,
+                "proximo_post": proximo,
                 "erros": control['error_count'] if control else 0
             })
     except Exception as e:
