@@ -1138,6 +1138,19 @@ def save_wa_creds():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
+@app.route('/api/whatsapp/list-sessions', methods=['GET'])
+def list_wa_sessions():
+    try:
+        import psycopg2
+        conn = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
+        cur = conn.cursor()
+        cur.execute("SELECT user_id FROM wa_sessions WHERE connected=1")
+        rows = cur.fetchall()
+        conn.close()
+        return jsonify({"sessions": [str(r[0]) for r in rows]})
+    except Exception as e:
+        return jsonify({"sessions": []})
+
 @app.route('/api/whatsapp/get-creds', methods=['GET'])
 def get_wa_creds():
     try:

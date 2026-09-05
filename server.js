@@ -967,15 +967,39 @@ process.on('unhandledRejection', reason => {
 // ══════════════════════════════════════════════════════════════
 
 async function carregarSessoes() {
-    if (!fs.existsSync(CONFIG.SESSIONS_DIR)) return;
+    // Buscar TODAS as sessões do PostgreSQL
+    try {
+        const resp = await fetch('http://127.0.0.1:8080/api/whatsapp/list-sessions');
+        if (resp.ok) {
+            const data = await resp.json();
+            if (data.sessions && data.sessions.length > 0) {
+                logger.info(`${data.sessions.length} sessão(ões) no PostgreSQL — restaurando...`);
+                for (const uid of data.sessions) {
+                    garantirDir(uid);
+                    // Buscar creds de cada sessão
+                    const credsResp = await fetch('http://127.0.0.1:8080/api/whatsapp/get-creds?userId=' + uid);
+                    if (credsResp.ok) {
+                        const credsData = await credsResp.json();
+                        if (credsData.success && credsData.creds && credsData.creds.length > 10) {
+                            const credsPath = path.join(CONFIG.SESSIONS_DIR, uid, 'creds.json');
+                            fs.writeFileSync(credsPath, credsData.creds);
+                            logger.info('✅ Sessão restaurada do PostgreSQL!', uid);
+                        }
+                    }
+                    await sleep(500);
+                }
+            }
+        }
+    } catch (e) {
+        logger.warn('Não conseguiu buscar sessões do PG: ' + e.message);
+    }
 
+    if (!fs.existsSync(CONFIG.SESSIONS_DIR)) return;
     const dirs = fs.readdirSync(CONFIG.SESSIONS_DIR).filter(d =>
         fs.existsSync(path.join(CONFIG.SESSIONS_DIR, d, 'creds.json'))
     );
-
     logger.info(`${dirs.length} sessão(ões) salva(s) — reconectando...`);
     let ok = 0;
-
     for (const uid of dirs) {
         try {
             if (isSessaoCorrompida(uid)) {
@@ -983,7 +1007,7 @@ async function carregarSessoes() {
                 deletarArquivosSessao(uid);
                 continue;
             }
-            await criarSocket(uid, false); // false = usa sessão salva
+            await criarSocket(uid, false);
             await sleep(1_500);
             ok++;
         } catch (e) {
