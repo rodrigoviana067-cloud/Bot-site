@@ -1023,14 +1023,20 @@ def piloto_status(user_id: int):
             
             # Calcular próximo post
             proximo = None
+            agora = datetime.now()
             if ativo and control and control['last_post_at']:
                 try:
                     last = datetime.fromisoformat(control['last_post_at'].replace(' ', 'T').split('+')[0])
-                    proximo = (last + timedelta(minutes=intervalo)).isoformat()
+                    candidato = last + timedelta(minutes=intervalo)
+                    # Se o candidato já passou, o próximo é AGORA
+                    if candidato < agora:
+                        proximo = agora.isoformat()
+                    else:
+                        proximo = candidato.isoformat()
                 except:
-                    proximo = (datetime.now() + timedelta(minutes=intervalo)).isoformat()
+                    proximo = agora.isoformat()
             elif ativo:
-                proximo = (datetime.now() + timedelta(minutes=intervalo)).isoformat()
+                proximo = agora.isoformat()
             
             return success_response({
                 "ativo": ativo,
