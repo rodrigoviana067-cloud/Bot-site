@@ -1105,6 +1105,22 @@ def criar_ab_test(user_id: int):
 def deletar_ab_test(user_id: int, test_id: int):
     return success_response(message="Teste removido!")
 
+@app.route('/api/whatsapp/status', methods=['GET'])
+@require_auth
+def whatsapp_status(user_id: int):
+    import requests as req
+    try:
+        resp = req.get('http://127.0.0.1:3000/status/' + str(user_id), timeout=5)
+        if resp.status_code == 200:
+            data = resp.json()
+            return success_response({
+                "connected": data.get('connected', False),
+                "pareado": True
+            })
+        return success_response({"connected": False, "pareado": False})
+    except:
+        return success_response({"connected": False, "pareado": False})
+
 @app.route('/api/whatsapp/pairing', methods=['POST', 'OPTIONS'])
 @require_auth
 def whatsapp_pairing(user_id: int):
