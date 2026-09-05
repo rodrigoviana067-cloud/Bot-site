@@ -1052,9 +1052,24 @@ def piloto_status(user_id: int):
 @require_auth
 def piloto_toggle(user_id: int):
     try:
+        import psycopg2
+        # Verificar se WhatsApp está conectado
+        conn_pg = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
+        cur_pg = conn_pg.cursor()
+        cur_pg.execute("SELECT connected FROM wa_sessions WHERE user_id=%s", (str(user_id),))
+        wa_row = cur_pg.fetchone()
+        conn_pg.close()
+        
+        wa_connected = bool(wa_row[0]) if wa_row else False
+        
         with get_db() as conn:
             user = conn.execute("SELECT autopost FROM users WHERE id=%s", (user_id,)).fetchone()
             novo = 0 if user['autopost'] else 1
+            
+            # Se está ATIVANDO e WhatsApp NÃO conectado, bloquear
+            if novo == 1 and not wa_connected:
+                return error_response("Conecte o WhatsApp antes de ativar o piloto!", 400)
+            
             conn.execute("UPDATE users SET autopost=%s WHERE id=%s", (novo, user_id))
             conn.commit()
         return success_response({"ativo": bool(novo)})
