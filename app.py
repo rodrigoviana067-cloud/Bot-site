@@ -968,7 +968,7 @@ def verificar_limites(user_id: int):
                 try:
                     started = datetime.fromisoformat(user['trial_start'].replace(' ', 'T').split('+')[0])
                     duracao = 7 if user['plano_ativo'] == 1 else 30
-                dias = max(0, duracao - (datetime.now() - started).days)
+                    dias = max(0, duracao - (datetime.now() - started).days)
                 except:
                     pass
 
