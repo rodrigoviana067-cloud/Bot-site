@@ -1144,7 +1144,7 @@ def get_wa_creds():
 def whatsapp_status(user_id: int):
     import requests as req
     try:
-        resp = req.get('http://127.0.0.1:3000/status/' + str(user_id), timeout=5)
+        resp = req.get('http://127.0.0.1:3000/connected/' + str(user_id), timeout=5)
         if resp.status_code == 200:
             data = resp.json()
             return success_response({
