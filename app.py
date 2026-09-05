@@ -214,7 +214,7 @@ def login():
         dias = 0
         if user['trial_start']:
             try:
-                started = datetime.fromisoformat(user['trial_start'])
+                started = datetime.fromisoformat(user['trial_start'].replace(' ', 'T').split('+')[0])
                 dias = max(0, 30 - (datetime.now() - started).days)
             except:
                 pass
@@ -965,7 +965,7 @@ def verificar_limites(user_id: int):
             dias = 0
             if user['trial_start']:
                 try:
-                    started = datetime.fromisoformat(user['trial_start'])
+                    started = datetime.fromisoformat(user['trial_start'].replace(' ', 'T').split('+')[0])
                     dias = max(0, 30 - (datetime.now() - started).days)
                 except:
                     pass
