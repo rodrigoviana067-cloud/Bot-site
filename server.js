@@ -967,70 +967,67 @@ process.on('unhandledRejection', reason => {
 // ══════════════════════════════════════════════════════════════
 
 async function carregarSessoes() {
-    // Buscar TODAS as sessões do PostgreSQL (com retry)
-    try {
-        let resp;
-        for (let tentativa = 0; tentativa < 10; tentativa++) {
-            try {
-                resp = await fetch('http://127.0.0.1:8080/api/whatsapp/list-sessions');
-                if (resp.ok) break;
-            } catch (e) {
-                logger.debug(`Backend ainda não pronto (tentativa ${tentativa + 1}/10)`, uid);
-            }
-            await sleep(5_000);
-        }
-        if (!resp) throw new Error('Backend não respondeu');
-        if (resp.ok) {
-            const data = await resp.json();
-            console.log('📥 Sessions recebidas:', JSON.stringify(data));
-            if (data.sessions && data.sessions.length > 0) {
-                console.log('🔄 Restaurando', data.sessions.length, 'sessões...');
-                logger.info(`${data.sessions.length} sessão(ões) no PostgreSQL — restaurando...`);
-                for (const uid of data.sessions) {
-                    garantirDir(uid);
-                    // Buscar creds de cada sessão
-                    const credsResp = await fetch('http://127.0.0.1:8080/api/whatsapp/get-creds?userId=' + uid);
-                    if (credsResp.ok) {
-                        const credsData = await credsResp.json();
-                        console.log('📦 Creds recebidas para', uid, ':', credsData.creds?.length || 0, 'bytes');
-                        if (credsData.success && credsData.creds && credsData.creds.length > 10) {
-                            const credsPath = path.join(CONFIG.SESSIONS_DIR, uid, 'creds.json');
-                            fs.writeFileSync(credsPath, credsData.creds);
-                            console.log('✅ CREDS ESCRITA em', credsPath);
-                            logger.info('✅ Sessão restaurada do PostgreSQL!', uid);
-                        }
-                    }
-                    await sleep(500);
-                }
-            }
-        }
-    } catch (e) {
-        logger.warn('Não conseguiu buscar sessões do PG: ' + e.message);
-    }
+  console.log('🔄 Buscando sessões do PostgreSQL...');
 
-    if (!fs.existsSync(CONFIG.SESSIONS_DIR)) return;
-    const dirs = fs.readdirSync(CONFIG.SESSIONS_DIR).filter(d =>
-        fs.existsSync(path.join(CONFIG.SESSIONS_DIR, d, 'creds.json'))
-    );
-    logger.info(`${dirs.length} sessão(ões) salva(s) — reconectando...`);
-    let ok = 0;
-    for (const uid of dirs) {
-        try {
-            if (isSessaoCorrompida(uid)) {
-                logger.warn(`Sessão corrompida: ${uid} — removendo`, uid);
-                deletarArquivosSessao(uid);
-                continue;
-            }
-            await criarSocket(uid, false);
-            await sleep(1_500);
-            ok++;
-        } catch (e) {
-            logger.error(`Falha ao carregar ${uid}: ${e.message}`, uid);
-            deletarArquivosSessao(uid);
-        }
+  let listSessions = null;
+
+  for (let i = 1; i <= 12; i++) {
+    try {
+      const resp = await fetch('http://127.0.0.1:8080/api/whatsapp/list-sessions');
+      if (resp.ok) {
+        listSessions = await resp.json();
+        console.log('📥 list-sessions:', JSON.stringify(listSessions));
+        break;
+      }
+    } catch (e) {
+      console.log(`⏳ Backend não pronto (${i}/12): ${e.message}`);
     }
-    logger.info(`${ok}/${dirs.length} sessão(ões) carregada(s)`);
+    await sleep(5_000);
+  }
+
+  if (listSessions && Array.isArray(listSessions.sessions)) {
+    for (const uid of listSessions.sessions) {
+      try {
+        const resp = await fetch(`http://127.0.0.1:8080/api/whatsapp/get-creds?userId=${uid}`);
+        if (!resp.ok) continue;
+
+        const data = await resp.json();
+        console.log(`📦 get-creds ${uid}:`, JSON.stringify({ success: data.success, size: data.creds ? data.creds.length : 0 }));
+
+        if (data.success && data.creds && data.creds.length > 100) {
+          garantirDir(uid);
+          const credsPath = path.join(CONFIG.SESSIONS_DIR, String(uid), 'creds.json');
+          fs.writeFileSync(credsPath, data.creds);
+          console.log(`✅ creds.json restaurado para user ${uid}`);
+        }
+      } catch (e) {
+        console.log(`❌ Falha ao restaurar user ${uid}: ${e.message}`);
+      }
+      await sleep(1_000);
+    }
+  } else {
+    console.log('⚠️ Nenhuma sessão no PostgreSQL.');
+  }
+
+  if (!fs.existsSync(CONFIG.SESSIONS_DIR)) return;
+
+  const dirs = fs.readdirSync(CONFIG.SESSIONS_DIR).filter(d =>
+    fs.existsSync(path.join(CONFIG.SESSIONS_DIR, d, 'creds.json'))
+  );
+
+  console.log(`🔁 ${dirs.length} sessão(ões) local para reconectar`);
+
+  for (const uid of dirs) {
+    try {
+      await criarSocket(uid, false);
+      console.log(`✅ Sessão ${uid} reconectada com sucesso.`);
+    } catch (e) {
+      console.log(`❌ Falha ao reconectar ${uid}: ${e.message}`);
+    }
+    await sleep(1_500);
+  }
 }
+
 
 // ══════════════════════════════════════════════════════════════
 //  INICIALIZAÇÃO
