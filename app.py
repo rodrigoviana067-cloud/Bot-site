@@ -1445,7 +1445,7 @@ def criar_order(user_id: int):
                 "token": token,
                 "description": f"Plano {plano[0]}",
                 "installments": parcelas,
-                # Mercado Pago identifica a bandeira pelo token
+                "payment_method_id": payment_method if payment_method in ['visa', 'mastercard', 'amex', 'elo'] else 'mastercard',
                 "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
             }
             result = sdk.payment().create(payment_data)
