@@ -1445,7 +1445,7 @@ def criar_order(user_id: int):
                 "token": token,
                 "description": f"Plano {plano[0]}",
                 "installments": parcelas,
-                "payment_method_id": payment_method if payment_method in ['visa', 'mastercard', 'amex', 'elo'] else 'mastercard',
+                "payment_method_id": {"master": "mastercard", "visa": "visa", "amex": "amex", "elo": "elo"}.get(payment_method, "mastercard"),
                 "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
             }
             result = sdk.payment().create(payment_data)
