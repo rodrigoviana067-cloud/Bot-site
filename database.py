@@ -56,7 +56,7 @@ def init_database():
         cur.execute("CREATE TABLE IF NOT EXISTS produtos_enviados (id SERIAL PRIMARY KEY, user_id INTEGER, product_id TEXT, grupo_id TEXT, enviado_em TEXT DEFAULT NOW())")
         cur.execute("CREATE TABLE IF NOT EXISTS ab_tests (id SERIAL PRIMARY KEY, user_id INTEGER, nome TEXT, template_a_id INTEGER, template_b_id INTEGER, created_at TEXT DEFAULT NOW())")
         cur.execute("CREATE TABLE IF NOT EXISTS remarketing (id SERIAL PRIMARY KEY, user_id INTEGER, click_id INTEGER, etapa INTEGER DEFAULT 1, status TEXT DEFAULT 'pendente', scheduled_at TEXT, sent_at TEXT, message TEXT)")
-            cur.execute("CREATE TABLE IF NOT EXISTS wa_sessions (user_id INTEGER PRIMARY KEY, creds_json TEXT NOT NULL, connected INTEGER DEFAULT 0, updated_at TIMESTAMP DEFAULT NOW())")
+        cur.execute("CREATE TABLE IF NOT EXISTS wa_sessions (user_id INTEGER PRIMARY KEY, creds_json TEXT NOT NULL, connected INTEGER DEFAULT 0, updated_at TIMESTAMP DEFAULT NOW())")
         cur.execute("CREATE TABLE IF NOT EXISTS pagamentos (id SERIAL PRIMARY KEY, user_id INTEGER, order_id TEXT UNIQUE, payment_id TEXT, status TEXT DEFAULT 'pending', valor REAL, plano TEXT, metodo TEXT, criado_em TEXT, processado INTEGER DEFAULT 0)")
         db.commit()
     logger.info("✅ PostgreSQL inicializado!")
