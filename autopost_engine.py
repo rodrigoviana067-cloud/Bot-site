@@ -9,7 +9,7 @@ import random
 import logging
 import threading
 from typing import List, Optional, Dict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from config import settings
 from database import get_db, Template, Grupo, User, Template, Grupo, User
@@ -177,7 +177,7 @@ class RemarketingEngine:
         try:
             with get_db() as conn:
                 for i, (horas, msg) in enumerate(zip(horarios, mensagens), 1):
-                    scheduled = (datetime.now() + timedelta(hours=horas)).isoformat()
+                    scheduled = (datetime.now(timezone.utc) + timedelta(hours=horas)).isoformat()
                     conn.execute(
                         """INSERT INTO remarketing (user_id, click_id, etapa, status, scheduled_at, message)
                            VALUES (%s, %s, %s, 'pendente', %s, %s)""",
@@ -238,7 +238,7 @@ class AutopostEngine:
     def _is_dentro_horario(self, hora_inicio: str, hora_fim: str) -> bool:
         """Verifica se está dentro do horário de operação"""
         try:
-            agora = datetime.now()
+            agora = datetime.now(timezone.utc)
             current = agora.hour * 60 + agora.minute
 
             h, m = map(int, hora_inicio.split(':'))
@@ -274,7 +274,7 @@ class AutopostEngine:
                 # Resetar posts_today se novo dia
                 if control['last_post_at']:
                     last_date = control['last_post_at'][:10]
-                    hoje = datetime.now().strftime('%Y-%m-%d')
+                    hoje = datetime.now(timezone.utc).strftime('%Y-%m-%d')
                     if last_date != hoje:
                         conn.execute(
                             "UPDATE autopost_control SET posts_today=0 WHERE user_id=%s",
@@ -288,7 +288,7 @@ class AutopostEngine:
                 if control['paused_until']:
                     try:
                         paused = datetime.fromisoformat(control['paused_until'])
-                        if datetime.now() < paused:
+                        if datetime.now(timezone.utc) < paused:
                             return False
                     except:
                         pass
@@ -301,7 +301,7 @@ class AutopostEngine:
                 if control['last_post_at']:
                     try:
                         last = datetime.fromisoformat(control['last_post_at'])
-                        elapsed = (datetime.now() - last).total_seconds() / 60
+                        elapsed = (datetime.now(timezone.utc) - last).total_seconds() / 60
                         if elapsed < intervalo_min:
                             return False
                     except:
@@ -368,7 +368,7 @@ class AutopostEngine:
                         settings.AUTOPOST_PAUSE_MINUTES * (settings.AUTOPOST_BACKOFF_MULTIPLIER ** (error_count - settings.AUTOPOST_MAX_ERRORS_BEFORE_PAUSE)),
                         settings.AUTOPOST_MAX_BACKOFF_MINUTES
                     )
-                    paused_until = (datetime.now() + timedelta(minutes=pause_minutes)).isoformat()
+                    paused_until = (datetime.now(timezone.utc) + timedelta(minutes=pause_minutes)).isoformat()
                     logger.warning(f"⏸️ User {user_id} pausado por {pause_minutes:.0f}min ({error_count} erros)")
                 else:
                     paused_until = None
@@ -542,7 +542,7 @@ class AutopostEngine:
                 if usar_smart:
                     melhor_hora = self.smart_schedule.get_melhor_horario(uid, grupo['grupo_id'])
                     if melhor_hora:
-                        agora = datetime.now().strftime('%H:%M')
+                        agora = datetime.now(timezone.utc).strftime('%H:%M')
                         # Permitir ±30min do melhor horário
                         # Simplificação: se não estiver próximo, pula
                         # Em produção, usar lógica mais sofisticada
@@ -659,7 +659,7 @@ class AutopostEngine:
                     time.sleep(settings.AUTOPOST_CHECK_INTERVAL)
                     continue
 
-                logger.info(f"🔄 Ciclo #{ciclo_count} | {len(usuarios)} usuário(s) | {datetime.now().strftime('%H:%M')}")
+                logger.info(f"🔄 Ciclo #{ciclo_count} | {len(usuarios)} usuário(s) | {datetime.now(timezone.utc).strftime('%H:%M')}")
 
                 # Processar remarketing
                 self.remarketing.processar_pendentes()
@@ -697,7 +697,7 @@ class AutopostEngine:
             return 0
         try:
             started = datetime.fromisoformat(trial_start)
-            days_left = 7 - (datetime.now() - started).days
+            days_left = 7 - (datetime.now(timezone.utc) - started).days
             return max(0, days_left)
         except:
             return 0
