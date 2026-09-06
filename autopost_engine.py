@@ -504,10 +504,11 @@ class AutopostEngine:
                 return 0
 
             # Buscar credenciais da config
-            config_shopee = conn.execute(
-                "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=%s",
-                (uid,)
-            ).fetchone()
+            with get_db() as conn:
+                config_shopee = conn.execute(
+                    "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=%s",
+                    (uid,)
+                ).fetchone()
 
             produtos = shopee_service.buscar_produtos(
                 uid,
