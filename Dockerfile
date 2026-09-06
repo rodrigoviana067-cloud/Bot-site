@@ -26,4 +26,4 @@ RUN mkdir -p logs
 
 EXPOSE 8080
 
-CMD ["bash", "start.sh"]
+CMD ["sh", "-c", "node server.js & /app/venv/bin/python app.py & wait -n"]
