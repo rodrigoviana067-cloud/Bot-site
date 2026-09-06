@@ -1433,7 +1433,7 @@ def criar_order(user_id: int):
                 conn.close()
                 return error_response(f"Erro PIX: {result}", 500)
         
-        elif payment_method in ['cartao', 'credit_card', 'visa', 'master']:
+        elif payment_method in ['cartao', 'credit_card', 'visa', 'master', 'amex', 'elo', 'hipercard']:
             token = data.get('card_token', '')
             parcelas = int(data.get('installments', 1))
             if not token:
@@ -1445,7 +1445,7 @@ def criar_order(user_id: int):
                 "token": token,
                 "description": f"Plano {plano[0]}",
                 "installments": parcelas,
-                "payment_method_id": "mastercard",  # ou visa
+                # Mercado Pago identifica a bandeira pelo token
                 "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
             }
             result = sdk.payment().create(payment_data)
