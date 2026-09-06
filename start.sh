@@ -44,4 +44,4 @@ echo "✅ Bridge está vivo"
 # Iniciar Backend na porta do Railway (foreground - processo principal)
 echo "🚀 Iniciando Backend na porta $BACKEND_PORT..."
 export PATH="/app/venv/bin:$PATH"
-exec /app/venv/bin/gunicorn app:app --bind 0.0.0.0:$BACKEND_PORT --workers 2 --timeout 30
+exec /app/venv/bin/gunicorn app:app --bind 0.0.0.0:$BACKEND_PORT --workers 1 --timeout 30
