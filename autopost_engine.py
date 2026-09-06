@@ -199,7 +199,7 @@ class RemarketingEngine:
                     """SELECT r.*, c.produto_link, c.grupo_id 
                        FROM remarketing r
                        JOIN clicks c ON r.click_id = c.id
-                       WHERE r.status='pendente' AND r.scheduled_at <= datetime('now')
+                       WHERE r.status='pendente' AND r.scheduled_at <= NOW()
                        LIMIT 10"""
                 ).fetchall()
 
@@ -213,7 +213,7 @@ class RemarketingEngine:
 
                     status = 'enviado' if success else 'falhou'
                     conn.execute(
-                        "UPDATE remarketing SET status=%s, sent_at=datetime('now') WHERE id=%s",
+                        "UPDATE remarketing SET status=%s, sent_at=NOW() WHERE id=%s",
                         (status, rem['id'])
                     )
 
@@ -265,7 +265,7 @@ class AutopostEngine:
 
                 if not control:
                     conn.execute(
-                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today) VALUES (%s, datetime('now'), 0)",
+                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today) VALUES (%s, NOW(), 0)",
                         (user_id,)
                     )
                     conn.commit()
@@ -318,7 +318,7 @@ class AutopostEngine:
             with get_db() as conn:
                 conn.execute(
                     """UPDATE autopost_control SET 
-                       last_post_at=datetime('now'), 
+                       last_post_at=NOW(), 
                        posts_today=posts_today+1, 
                        error_count=0, 
                        paused_until=NULL,
@@ -329,7 +329,7 @@ class AutopostEngine:
 
                 if conn.total_changes == 0:
                     conn.execute(
-                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today, total_posts) VALUES (%s, datetime('now'), 1, 1)",
+                        "INSERT INTO autopost_control (user_id, last_post_at, posts_today, total_posts) VALUES (%s, NOW(), 1, 1)",
                         (user_id,)
                     )
 
@@ -584,7 +584,7 @@ class AutopostEngine:
                     # Atualizar métricas do grupo
                     with get_db() as conn:
                         conn.execute(
-                            "UPDATE grupos SET total_posts=total_posts+1, ultimo_post=datetime('now') WHERE id=%s",
+                            "UPDATE grupos SET total_posts=total_posts+1, ultimo_post=NOW() WHERE id=%s",
                             (grupo['id'],)
                         )
                         conn.commit()
