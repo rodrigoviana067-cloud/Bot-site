@@ -1383,3 +1383,91 @@ def deletar_template(user_id: int, template_id: int):
         return success_response(message="Template deletado com sucesso!")
     except Exception as e:
         return error_response(str(e), 500)
+
+# ============================================================================
+# PAGAMENTOS
+# ============================================================================
+
+@app.route('/api/orders/criar', methods=['POST'])
+@require_auth
+def criar_order(user_id: int):
+    try:
+        data = request.get_json(silent=True) or {}
+        plan_id = data.get('plan_id', 2)
+        payment_method = data.get('payment_method', 'pix')
+        
+        import psycopg2
+        conn = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
+        cur = conn.cursor()
+        
+        # Buscar plano
+        cur.execute("SELECT nome, preco FROM planos WHERE id=%s", (plan_id,))
+        plano = cur.fetchone()
+        if not plano:
+            conn.close()
+            return error_response("Plano não encontrado", 404)
+        
+        import uuid
+        from datetime import datetime
+        order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}-{user_id}"
+        
+        # Registrar no banco
+        cur.execute(
+            "INSERT INTO pagamentos (user_id, order_id, status, valor, plano, metodo, criado_em) VALUES (%s, %s, 'pending', %s, %s, %s, NOW())",
+            (user_id, order_id, plano[1], plano[0], payment_method)
+        )
+        conn.commit()
+        conn.close()
+        
+        return success_response({
+            "order_id": order_id,
+            "status": "pending",
+            "amount": plano[1],
+            "plan_name": plano[0],
+            "payment_method": payment_method
+        }, "Ordem criada!")
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/orders/status/<order_id>', methods=['GET'])
+@require_auth
+def order_status(user_id: int, order_id: str):
+    try:
+        import psycopg2
+        conn = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM pagamentos WHERE order_id=%s AND user_id=%s", (order_id, user_id))
+        row = cur.fetchone()
+        conn.close()
+        if not row:
+            return error_response("Pedido não encontrado", 404)
+        return success_response({
+            "order_id": row[2],
+            "status": row[4],
+            "valor": row[5],
+            "plano": row[6],
+            "metodo": row[7]
+        })
+    except Exception as e:
+        return error_response(str(e), 500)
+
+@app.route('/api/orders/aprovar/<order_id>', methods=['POST'])
+@require_auth
+def aprovar_order(user_id: int, order_id: str):
+    try:
+        import psycopg2
+        conn = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
+        cur = conn.cursor()
+        cur.execute("UPDATE pagamentos SET status='approved' WHERE order_id=%s AND user_id=%s", (order_id, user_id))
+        
+        # Ativar plano
+        cur.execute("SELECT plano FROM pagamentos WHERE order_id=%s", (order_id,))
+        plano_nome = cur.fetchone()[0]
+        cur.execute("SELECT id FROM planos WHERE nome=%s", (plano_nome,))
+        plano_id = cur.fetchone()[0]
+        cur.execute("UPDATE users SET plano_ativo=%s, trial_start=NOW(), autopost=1 WHERE id=%s", (plano_id, user_id))
+        conn.commit()
+        conn.close()
+        return success_response(message="Pagamento aprovado e plano ativado!")
+    except Exception as e:
+        return error_response(str(e), 500)
