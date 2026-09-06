@@ -34,6 +34,10 @@ from agendador import agendador_worker
 # ============================================================================
 
 app = Flask(__name__)
+
+# Iniciar workers SEMPRE (gunicorn e python)
+autopost_engine.start()
+agendador_worker.start()
 CORS(app, resources={r'/*': {'origins': '*'}})
 app.config['SECRET_KEY'] = settings.SECRET_KEY
 app.config['JSON_SORT_KEYS'] = False
@@ -1356,11 +1360,6 @@ if __name__ == '__main__':
     logger.info(f"📊 Banco: {settings.DB_PATH}")
     logger.info(f"🔐 JWT: {settings.JWT_SECRET[:20]}...")
     logger.info("=" * 60)
-
-    # Iniciar workers
-    # Workers desativados temporariamente
-    autopost_engine.start()
-    agendador_worker.start()
 
     app.run(
         host='0.0.0.0',
