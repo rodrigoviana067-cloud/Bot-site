@@ -1054,7 +1054,7 @@ def piloto_status(user_id: int):
                 "ativo": ativo,
                 "posts_hoje": control['posts_today'] if control else 0,
                 "posts_restantes": 200 - (control['posts_today'] if control else 0),
-                "proximo_post": proximo,
+                "proximo_post": proximo + "+00:00" if proximo and "Z" not in proximo and "+" not in proximo else proximo,
                 "erros": control['error_count'] if control else 0
             })
     except Exception as e:
