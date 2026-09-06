@@ -503,10 +503,16 @@ class AutopostEngine:
             if not user.get('shopee_app_id') or not user.get('shopee_api_key'):
                 return 0
 
+            # Buscar credenciais da config
+            config_shopee = conn.execute(
+                "SELECT shopee_app_id, shopee_api_key FROM configs WHERE user_id=%s",
+                (uid,)
+            ).fetchone()
+
             produtos = shopee_service.buscar_produtos(
                 uid,
-                user['shopee_app_id'],
-                user['shopee_api_key'],
+                config_shopee['shopee_app_id'] if config_shopee else '',
+                config_shopee['shopee_api_key'] if config_shopee else '',
                 min_desconto
             )
 
