@@ -327,7 +327,7 @@ class AutopostEngine:
                     (user_id,)
                 )
 
-                if conn.total_changes == 0:
+                if conn.cursor().rowcount == 0:
                     conn.execute(
                         "INSERT INTO autopost_control (user_id, last_post_at, posts_today, total_posts) VALUES (%s, NOW(), 1, 1)",
                         (user_id,)
@@ -378,7 +378,7 @@ class AutopostEngine:
                     (error_count, paused_until, user_id)
                 )
 
-                if conn.total_changes == 0:
+                if conn.cursor().rowcount == 0:
                     conn.execute(
                         "INSERT INTO autopost_control (user_id, error_count, paused_until) VALUES (%s, %s, %s)",
                         (user_id, error_count, paused_until)
