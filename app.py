@@ -171,6 +171,14 @@ def register():
 
             # Criar configurações padrão
             conn.execute("INSERT INTO configs (user_id) VALUES (%s)", (user_id,))
+
+            # Criar template padrão
+            conn.execute(
+                """INSERT INTO templates (user_id, nome, copy, selecionado)
+                   VALUES (%s, %s, %s, 1)""",
+                (user_id, 'Template Padrão',
+                 '🔥 {titulo}\n\n💰 De R$ {preco_original} por R$ {preco}\n📉 {desconto}% OFF\n\n👉 {link}')
+            )
             conn.commit()
 
         token = create_jwt_token({"sub": str(user_id)})
