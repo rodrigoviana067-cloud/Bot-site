@@ -410,7 +410,7 @@ class AutopostEngine:
         try:
             with get_db() as conn:
                 conn.execute(
-                    "DELETE FROM produtos_enviados WHERE user_id=%s AND enviado_em < datetime('now', '-{} days')".format(dias),
+                    "DELETE FROM produtos_enviados WHERE user_id=%s AND enviado_em < NOW() - INTERVAL '{} days'".format(dias),
                     (user_id,)
                 )
                 conn.commit()
