@@ -1396,35 +1396,59 @@ def criar_order(user_id: int):
         plan_id = data.get('plan_id', 2)
         payment_method = data.get('payment_method', 'pix')
         
-        import psycopg2
+        import psycopg2, uuid, mercadopago, os
         conn = psycopg2.connect('postgresql://postgres:wAPmhEQuFdJowHjWyveTUTkdotElMtOQ@kodama.proxy.rlwy.net:21141/railway')
         cur = conn.cursor()
         
-        # Buscar plano
         cur.execute("SELECT nome, preco FROM planos WHERE id=%s", (plan_id,))
         plano = cur.fetchone()
         if not plano:
             conn.close()
             return error_response("Plano não encontrado", 404)
         
-        import uuid
-        from datetime import datetime
         order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}-{user_id}"
+        valor = float(plano[1])
         
-        # Registrar no banco
+        # Mercado Pago
+        sdk = mercadopago.SDK(os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-968886465870879-062618-fc28eee599434fef94a4e1513ccbae46-325834470'))
+        
+        if payment_method == 'pix':
+            payment_data = {
+                "transaction_amount": valor,
+                "description": f"Plano {plano[0]}",
+                "payment_method_id": "pix",
+                "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
+            }
+            result = sdk.payment().create(payment_data)
+            
+            if result.get('status') == 201:
+                qr_code = result['response']['point_of_interaction']['transaction_data']['qr_code']
+                qr_base64 = result['response']['point_of_interaction']['transaction_data']['qr_code_base64']
+                mp_status = result['response']['status']
+                payment_id = str(result['response']['id'])
+            else:
+                conn.close()
+                return error_response(f"Erro MP: {result}", 500)
+        else:
+            conn.close()
+            return error_response("Método ainda não suportado", 400)
+        
         cur.execute(
-            "INSERT INTO pagamentos (user_id, order_id, status, valor, plano, metodo, criado_em) VALUES (%s, %s, 'pending', %s, %s, %s, NOW())",
-            (user_id, order_id, plano[1], plano[0], payment_method)
+            "INSERT INTO pagamentos (user_id, order_id, payment_id, status, valor, plano, metodo, criado_em) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())",
+            (user_id, order_id, payment_id, mp_status, valor, plano[0], payment_method)
         )
         conn.commit()
         conn.close()
         
         return success_response({
             "order_id": order_id,
-            "status": "pending",
-            "amount": plano[1],
+            "payment_id": payment_id,
+            "status": mp_status,
+            "amount": valor,
             "plan_name": plano[0],
-            "payment_method": payment_method
+            "payment_method": payment_method,
+            "qr_code": qr_code,
+            "qr_code_base64": qr_base64
         }, "Ordem criada!")
     except Exception as e:
         return error_response(str(e), 500)
