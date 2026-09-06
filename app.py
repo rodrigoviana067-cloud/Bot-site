@@ -1412,6 +1412,10 @@ def criar_order(user_id: int):
         # Mercado Pago
         sdk = mercadopago.SDK(os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-968886465870879-062618-fc28eee599434fef94a4e1513ccbae46-325834470'))
         
+        qr_code = ''
+        qr_base64 = ''
+        ticket_url = ''
+        
         if payment_method == 'pix':
             payment_data = {
                 "transaction_amount": valor,
@@ -1420,7 +1424,6 @@ def criar_order(user_id: int):
                 "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
             }
             result = sdk.payment().create(payment_data)
-            
             if result.get('status') == 201:
                 qr_code = result['response']['point_of_interaction']['transaction_data']['qr_code']
                 qr_base64 = result['response']['point_of_interaction']['transaction_data']['qr_code_base64']
@@ -1428,10 +1431,62 @@ def criar_order(user_id: int):
                 payment_id = str(result['response']['id'])
             else:
                 conn.close()
-                return error_response(f"Erro MP: {result}", 500)
+                return error_response(f"Erro PIX: {result}", 500)
+        
+        elif payment_method in ['cartao', 'credit_card', 'visa', 'master']:
+            token = data.get('card_token', '')
+            parcelas = int(data.get('installments', 1))
+            if not token:
+                conn.close()
+                return error_response("Token do cartão obrigatório", 400)
+            
+            payment_data = {
+                "transaction_amount": valor,
+                "token": token,
+                "description": f"Plano {plano[0]}",
+                "installments": parcelas,
+                "payment_method_id": "mastercard",  # ou visa
+                "payer": {"email": f"user{user_id}@waaffiliate.com", "first_name": "Cliente"}
+            }
+            result = sdk.payment().create(payment_data)
+            if result.get('status') == 201:
+                mp_status = result['response']['status']
+                payment_id = str(result['response']['id'])
+            else:
+                conn.close()
+                return error_response(f"Erro Cartão: {result}", 500)
+        
+        elif payment_method in ['boleto', 'bolbradesco']:
+            payment_data = {
+                "transaction_amount": valor,
+                "description": f"Plano {plano[0]}",
+                "payment_method_id": "bolbradesco",
+                "payer": {
+                    "email": f"user{user_id}@waaffiliate.com",
+                    "first_name": "Cliente",
+                    "last_name": "Sobrenome",
+                    "identification": {"type": "CPF", "number": "08576961300"},
+                    "address": {
+                        "zip_code": "06233200",
+                        "street_name": "Rua Exemplo",
+                        "street_number": "123",
+                        "neighborhood": "Centro",
+                        "city": "Sao Paulo",
+                        "federal_unit": "SP"
+                    }
+                }
+            }
+            result = sdk.payment().create(payment_data)
+            if result.get('status') == 201:
+                mp_status = result['response']['status']
+                payment_id = str(result['response']['id'])
+                ticket_url = result['response']['transaction_details']['external_resource_url']
+            else:
+                conn.close()
+                return error_response(f"Erro Boleto: {result}", 500)
         else:
             conn.close()
-            return error_response("Método ainda não suportado", 400)
+            return error_response("Método inválido", 400)
         
         cur.execute(
             "INSERT INTO pagamentos (user_id, order_id, payment_id, status, valor, plano, metodo, criado_em) VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())",
